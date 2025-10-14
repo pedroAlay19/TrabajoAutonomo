@@ -1,20 +1,20 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
 import { TicketEntity } from './ticket.entity';
 
-@Entity()
+@Entity('Review')
 export class ReviewEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
-  @ManyToOne(() => TicketEntity, ticket => ticket.reviews, { onDelete: 'CASCADE' })
-  ticket: TicketEntity;
+  @ManyToOne(() => TicketEntity, ticket => ticket.reviews)
+  ticket!: TicketEntity;
 
   @Column({ type: 'smallint' })
-  rating: number; // 1–5
+  rating!: number; // 1–5
 
   @Column({ type: 'text', nullable: true })
   comment?: string;
 
   @CreateDateColumn()
-  createdAt: Date;
-}
+  createdAt!: Date;
+} 

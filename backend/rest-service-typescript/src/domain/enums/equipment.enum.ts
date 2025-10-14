@@ -2,6 +2,7 @@ export enum EquipmentType {
   PC = "PC",
   LAPTOP = "LAPTOP",
   CELLPHONE = "CELLPHONE",
+  PRINTER = "PRINTER"
 }
 
 export enum EquipmentStatus {

@@ -3,22 +3,25 @@ import { EquipmentStatus, EquipmentType } from "../enums/equipment.enum";
 import { TicketEntity } from "./ticket.entity";
 import { UserEntity } from "./user.entity";
 
-@Entity()
+@Entity('Equipment')
 export class EquipmentEntity {
   @PrimaryGeneratedColumn()
-  id: string;
+  id!: string;
 
-  @ManyToOne(() => UserEntity, user => user.equipments, { onDelete: 'SET NULL' })
-  user: UserEntity;
+  @ManyToOne(() => UserEntity, user => user.equipments)
+  user!: UserEntity;
+  
+  @Column()
+  name!: string;
 
   @Column({ type: 'enum', enum: EquipmentType})
-  type: EquipmentType;
+  type!: EquipmentType;
 
   @Column()
-  brand: string;
+  brand!: string;
 
   @Column()
-  model: string;
+  model!: string;
 
   @Column({nullable: true})
   serialNumber?: string;
@@ -27,11 +30,11 @@ export class EquipmentEntity {
   observations?: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
-  @Column({type: 'enum', enum: EquipmentStatus})
-  currentStatus: EquipmentStatus;
+  @Column({type: 'enum', enum: EquipmentStatus, default: EquipmentStatus.IN_REPAIR})
+  currentStatus!: EquipmentStatus;
 
   @OneToMany(() => TicketEntity, ticket => ticket.equipment)
-  tickets?: TicketEntity[];
+  tickets!: TicketEntity[];
 }

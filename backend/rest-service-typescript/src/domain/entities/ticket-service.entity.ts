@@ -4,31 +4,31 @@ import { ServiceEntity } from './service.entity';
 import { TechnicianEntity } from './technician.entity';
 import { TicketServiceStatus } from '../enums/ticket.enum';
 
-@Entity()
+@Entity('Ticket-Service')
 export class TicketServiceEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id!: string;
 
-  @ManyToOne(() => TicketEntity, ticket => ticket.ticketServices, { onDelete: 'CASCADE' })
-  ticket: TicketEntity;
+  @ManyToOne(() => TicketEntity, ticket => ticket.ticketServices)
+  ticket!: TicketEntity;
 
-  @ManyToOne(() => ServiceEntity, service => service.ticketServices, { onDelete: 'RESTRICT' })
-  service: ServiceEntity;
+  @ManyToOne(() => ServiceEntity, service => service.ticketServices)
+  service!: ServiceEntity;
 
-  @ManyToOne(() => TechnicianEntity, tech => tech.user, { onDelete: 'SET NULL'})
-  technician: TechnicianEntity;
-
-  @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
-  unitPrice: number;
+  @ManyToOne(() => TechnicianEntity, tech => tech.ticketServices)
+  technician?: TechnicianEntity;
 
   @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
-  discount: number;
+  unitPrice!: number;
+
+  @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
+  discount!: number;
 
   @Column({ type: 'numeric', precision: 12, scale: 2, default: 0})
-  subTotal: number;
+  subTotal!: number;
 
   @Column({ type: 'enum', enum: TicketServiceStatus })
-  status: TicketServiceStatus;
+  status!: TicketServiceStatus;
 
   @Column({ type: 'text', nullable: true })
   imageUrl?: string;
@@ -37,8 +37,8 @@ export class TicketServiceEntity {
   notes?: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

@@ -3,20 +3,19 @@ import { EquipmentEntity } from './equipment.entity';
 import { TicketServiceEntity } from './ticket-service.entity';
 import { TicketPartEntity } from './ticket-part.entity';
 import { TicketStatus } from '../enums/ticket.enum';
-import { UserEntity } from './user.entity';
 import { NotificationEntity } from './notification.entity';
 import { ReviewEntity } from './review.entity';
 
-@Entity()
+@Entity('Ticket')
 export class TicketEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
-  @ManyToOne(() => EquipmentEntity, equipment => equipment.tickets, { onDelete: 'SET NULL' })
-  equipment: EquipmentEntity;
+  @ManyToOne(() => EquipmentEntity, equipment => equipment.tickets)
+  equipment!: EquipmentEntity;
 
   @Column({ type: 'text'})
-  problemDescription: string;
+  problemDescription!: string;
 
   @Column({ type: 'text', nullable: true })
   diagnosis?: string;
@@ -34,26 +33,23 @@ export class TicketEntity {
   warrantyEndDate?: Date;
 
   @Column({ type: 'enum', enum: TicketStatus })
-  status: TicketStatus;
-
-  @ManyToOne(() => UserEntity, user => user.assignedTickets, { nullable: true })
-  technician?: UserEntity;
+  status!: TicketStatus;
 
   @OneToMany(() => TicketServiceEntity, ts => ts.ticket)
-  ticketServices?: TicketServiceEntity[];
+  ticketServices!: TicketServiceEntity[];
 
-  @OneToMany(() => TicketPartEntity, tp => tp.ticket)
+  @OneToMany(() => TicketPartEntity, tp => tp.ticket, {nullable: true})
   ticketParts?: TicketPartEntity[];
 
   @OneToMany(() => NotificationEntity, notification => notification.ticket)
-  notifications?: NotificationEntity;
+  notifications!: NotificationEntity[];
 
-  @OneToMany(() => ReviewEntity, review => review.ticket)
-  reviews?: ReviewEntity;
+  @OneToMany(() => ReviewEntity, review => review.ticket, {nullable: true})
+  reviews?: ReviewEntity[];
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

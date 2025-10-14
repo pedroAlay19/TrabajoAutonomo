@@ -1,27 +1,18 @@
-import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import { Column, OneToMany, ChildEntity } from 'typeorm';
+import { TicketServiceEntity } from './ticket-service.entity';
 import { UserEntity } from './user.entity';
 
-@Entity()
-export class TechnicianEntity {
-  @PrimaryColumn()
-  technicianId: number;
-
-  @OneToOne(() => UserEntity, user => user.technicianProfile, { onDelete: 'CASCADE' })
-  @JoinColumn()
-  user: UserEntity;
+@ChildEntity('Technician')
+export class TechnicianEntity extends UserEntity {
+  @OneToMany(() => TicketServiceEntity, ts => ts.technician)
+  ticketServices!: TicketServiceEntity[];
 
   @Column()
-  specialty: string;
+  specialty!: string;
 
   @Column({ type: 'int', default: 0})
-  experienceYears: number;
+  experienceYears!: number;
 
   @Column()
-  state: string;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
+  active!: boolean;
 }

@@ -1,28 +1,28 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { TicketPartEntity } from "./ticket-part.entity";
 
-@Entity()
+@Entity('Repair-Part')
 export class PartEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column({type: 'text'})
-  description: string;
+  description!: string;
 
   @Column({ type: 'int', default: 0 })
-  stock: number;
+  stock!: number;
 
   @Column({ type: 'numeric', precision: 12, scale: 2, default: 0})
-  unitPrice: number;
+  unitPrice!: number;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToMany(() => TicketPartEntity, tp => tp.part)
   ticketParts?: TicketPartEntity[];

@@ -2,29 +2,29 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { TicketEntity } from './ticket.entity';
 import { PartEntity } from './part.entity';
 
-@Entity('ticket_parts')
+@Entity('Ticket-Part')
 export class TicketPartEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id!: string;
 
-  @ManyToOne(() => TicketEntity, ticket => ticket.ticketParts, { onDelete: 'CASCADE' })
-  ticket: TicketEntity;
+  @ManyToOne(() => TicketEntity, ticket => ticket.ticketParts)
+  ticket!: TicketEntity;
 
-  @ManyToOne(() => PartEntity, part => part.ticketParts, { onDelete: 'RESTRICT' })
-  part: PartEntity;
+  @ManyToOne(() => PartEntity, part => part.ticketParts)
+  part!: PartEntity;
 
   @Column({type: 'int'})
-  quantity: number
+  quantity!: number
 
   @Column({ type: 'numeric', precision: 12, scale: 2, default: 0})
-  subTotal: number;
+  subTotal!: number;
 
   @Column({ type: 'text', nullable: true})
   imgUrl?: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

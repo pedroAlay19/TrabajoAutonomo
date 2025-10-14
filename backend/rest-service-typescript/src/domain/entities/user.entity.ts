@@ -1,44 +1,37 @@
-import { Column, CreateDateColumn, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, TableInheritance, UpdateDateColumn } from "typeorm";
 import { UserRole } from "../enums/user-role.enum";
 import { EquipmentEntity } from "./equipment.entity";
-import { TicketEntity } from "./ticket.entity";
-import { TechnicianEntity } from "./technician.entity";
 
-@Entity()
+@Entity('User')
+@TableInheritance({ column: { type: "varchar", name: "role" } })
 export class UserEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column()
-  lastName: string;
+  lastName!: string;
 
   @Column({unique: true})
-  email: string;
+  email!: string;
 
   @Column()
-  phone: string;
+  phone!: string;
 
   @Column()
-  address: string;
+  address!: string;
 
   @Column({type: 'enum', enum: UserRole})
-  role: UserRole;
+  role!: UserRole;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
-  @OneToMany(() => EquipmentEntity, equipment => equipment.user)
+  @OneToMany(() => EquipmentEntity, equipment => equipment.user, {nullable: true})
   equipments?: EquipmentEntity[];
-
-  @OneToOne(() => TechnicianEntity, technician => technician.user)
-  technicianProfile?: TechnicianEntity;
-
-  
-  assignedTickets?: TicketEntity[];
 }

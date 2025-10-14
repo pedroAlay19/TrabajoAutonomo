@@ -1,22 +1,22 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
 import { TicketEntity } from './ticket.entity';
 
-@Entity()
+@Entity('Notification')
 export class NotificationEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
-  @ManyToOne(() => TicketEntity, ticket => ticket.notifications, { onDelete: 'CASCADE' })
-  ticket?: TicketEntity;
+  @ManyToOne(() => TicketEntity, ticket => ticket.notifications)
+  ticket!: TicketEntity;
 
   @Column()
-  title: string;
+  title!: string;
 
   @Column({ type: 'text'})
-  message: string;
+  message!: string;
 
   @Column({ type: 'timestamptz', nullable: true })
-  sentAt: Date;
+  sentAt!: Date;
 
   @Column()
   status?: string;
@@ -25,5 +25,5 @@ export class NotificationEntity {
   type?: string; // 'email','sms','ws'
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 }
