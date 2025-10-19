@@ -1,10 +1,15 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateEquipmentDto } from './create-equipment.dto';
-import { IsEnum, IsOptional } from 'class-validator';
-import { EquipmentStatus } from '../entities/enums/equipment.enum';
+export enum EquipmentType {
+  PC = "PC",
+  LAPTOP = "LAPTOP",
+  CELLPHONE = "CELLPHONE",
+  PRINTER = "PRINTER"
+}
 
-export class UpdateEquipmentDto extends PartialType(CreateEquipmentDto) {
-  @IsOptional()
-  @IsEnum(EquipmentStatus)
-  currentStatus?: EquipmentStatus;
+export enum EquipmentStatus {
+  RECEIVED = "RECEIVED",
+  IN_REVIEW = "IN_REVIEW",
+  IN_REPAIR = "IN_REPAIR",
+  WAITING_PARTS = "WAITING_PARTS",
+  READY = "READY",
+  DELIVERED = "DELIVERED"
 }

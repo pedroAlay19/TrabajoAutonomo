@@ -37,14 +37,14 @@ export class EquipmentsService {
       relations: ['user', 'repairOrders'],
     });
     if (!equipmentFound)
-      throw new NotFoundException(Equipment with id ${id} not found);
+      throw new NotFoundException(`Equipment with id ${id} not found`);
     return equipmentFound;
   }
 
   async update(id: string, updateEquipmentDto: UpdateEquipmentDto) {
     const equipmentFound = await this.equipmentRepository.findOneBy({ id });
     if (!equipmentFound)
-      throw new NotFoundException(Equipment with id ${id} not found);
+      throw new NotFoundException(`Equipment with id ${id} not found`);
     await this.equipmentRepository.update(id, updateEquipmentDto);
     return await this.equipmentRepository.findOneBy({ id });
   }
@@ -52,7 +52,7 @@ export class EquipmentsService {
   async remove(id: string) {
     const equipment = await this.equipmentRepository.findOneBy({ id });
     if (!equipment)
-      throw new NotFoundException(Equipment with id ${id} not found);
+      throw new NotFoundException(`Equipment with id ${id} not found`);
     await this.equipmentRepository.remove(equipment);
   }
 }

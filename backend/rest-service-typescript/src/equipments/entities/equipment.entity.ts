@@ -38,3 +38,4 @@ export class Equipment {
   @OneToMany(() => RepairOrder, rp => rp.equipment)
   repairOrders!: RepairOrder[];
 }
+

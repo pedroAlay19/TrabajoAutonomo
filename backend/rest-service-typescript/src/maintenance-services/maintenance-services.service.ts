@@ -29,14 +29,14 @@ export class MaintenanceServicesService {
       relations: ['repairOrderDetails'],
     });
     if (!serviceFound)
-      throw new NotFoundException(Service with id ${id} not found);
+      throw new NotFoundException(`Service with id ${id} not found`);
     return serviceFound;
   }
 
   async update(id: string, updateServiceDto: UpdateMaintenanceServiceDto) {
     const serviceFound = await this.serviceRepository.findOneBy({ id });
     if (!serviceFound)
-      throw new NotFoundException(Service with id ${id} not found);
+      throw new NotFoundException(`Service with id ${id} not found`);
     await this.serviceRepository.update(id, updateServiceDto);
     return await this.serviceRepository.findOneBy({ id });
   }
@@ -44,7 +44,7 @@ export class MaintenanceServicesService {
   async remove(id: string) {
     const service = await this.serviceRepository.findOneBy({ id });
     if (!service)
-      throw new NotFoundException(Service with id ${id} not found);
+      throw new NotFoundException(`Service with id ${id} not found`);
     await this.serviceRepository.remove(service);
   }
 }
