@@ -12,7 +12,7 @@ import { CreateMaintenanceServiceDto } from './dto/create-maintenance-service.dt
 import { UpdateMaintenanceServiceDto } from './dto/update-maintenance-service.dto';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 
-@ApiTags('Maintenance services(Aproved)')
+@ApiTags('Maintenance services')
 @Controller('services')
 export class MaintenanceServicesController {
   constructor(

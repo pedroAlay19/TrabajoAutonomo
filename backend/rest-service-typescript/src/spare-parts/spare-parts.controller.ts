@@ -4,7 +4,7 @@ import { CreateSparePartDto } from './dto/create-spare-part.dto';
 import { UpdateSparePartDto } from './dto/update-spare-part.dto';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 
-@ApiTags('Spare Parts(Aproved)')
+@ApiTags('Spare Parts')
 @Controller('spare-parts')
 export class SparePartsController {
   constructor(private readonly sparePartsService: SparePartsService) {}

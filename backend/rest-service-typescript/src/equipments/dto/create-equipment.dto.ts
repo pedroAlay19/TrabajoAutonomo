@@ -4,48 +4,48 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateEquipmentDto {
   @ApiProperty({
-    description: 'The ID of the user who owns the equipment',
-    type: String,
-    format: 'uuid',
+    example: '3fbd8c54-b9f3-4e22-94e4-905a8bb12c99',
+    description: 'UUID of the user who owns this equipment',
   })
   @IsUUID()
   @IsNotEmpty()
   userId: string;
 
   @ApiProperty({
-    description: 'The name of the equipment',
-    type: String,
+    example: 'Laptop HP Pavilion',
+    description: 'Equipment name',
   })
   @IsString()
   @IsNotEmpty()
   name: string;
 
   @ApiProperty({
-    description: 'The type of the equipment',
+    example: 'LAPTOP',
     enum: EquipmentType,
+    description: 'Type of equipment (e.g., LAPTOP, PRINTER, DESKTOP)'
   })
   @IsEnum(EquipmentType)
   type: EquipmentType;
 
   @ApiProperty({
-    description: 'The brand of the equipment',
-    type: String,
+    example: 'HP',
+    description: 'Brand of the equipment',
   })
   @IsString()
   @IsNotEmpty()
   brand: string;
 
   @ApiProperty({
-    description: 'The model of the equipment',
-    type: String,
+    example: 'Pavilion 15',
+    description: 'Model of the equipment',
   })
   @IsString()
   @IsNotEmpty()
   model: string;
 
   @ApiProperty({
-    description: 'The serial number of the equipment',
-    type: String,
+    example: 'SN12345HP2025',
+    description: 'Serial number of the equipment (optional)',
     required: false,
   })
   @IsOptional()
@@ -53,8 +53,8 @@ export class CreateEquipmentDto {
   serialNumber?: string;
 
   @ApiProperty({
-    description: 'The observations or notes about the equipment',
-    type: String,
+    example: 'Laptop with overheating issues',
+    description: 'Additional notes or observations (optional)',
     required: false,
   })
   @IsOptional()

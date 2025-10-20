@@ -66,7 +66,7 @@ export class RepairOrdersService {
 
     await this.notificationService.create(
       savedOrderRepair,
-      OrderRepairStatus.OPEN,
+      OrderRepairStatus.OPEN,//
     );
 
     return {
