@@ -9,6 +9,8 @@ import { RepairOrderPartsService } from './services/repair-order-parts.service';
 import { NotificationService } from './services/notification.service';
 import { OrderRepairStatus } from './entities/enum/order-repair.enum';
 import { UpdateRepairOrderDto } from './dto/update-repair-order.dto';
+import { firstValueFrom } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class RepairOrdersService {
@@ -23,6 +25,8 @@ export class RepairOrdersService {
     private readonly repairOrderPartsService: RepairOrderPartsService,
 
     private readonly notificationService: NotificationService,
+
+    private readonly httpService: HttpService,
   ) {}
 
   async create(createRepairOrderDto: CreateRepairOrderDto) {
@@ -69,6 +73,19 @@ export class RepairOrdersService {
       OrderRepairStatus.OPEN,//
     );
 
+    try {
+      await firstValueFrom(
+        this.httpService.post('http://localhost:8081/notify',{
+          type: 'repair_order',
+          action: 'created',
+          id: savedOrderRepair.id,
+        }),
+      );
+      console.log('Notificación enviada al WebSocket Go');
+    } catch (error) {
+      console.error('Error notificando al WebSocket Go:', error.message)
+    }
+
     return {
       ...savedOrderRepair,
       details,
@@ -92,6 +109,11 @@ export class RepairOrdersService {
 
   async update(id: string, updateRepairOrderDto: UpdateRepairOrderDto) {
     const repairOrder = await this.findOne(id);
+
+    // se guarda el estado anterior
+    const previousStatus = repairOrder.status;
+
+
     // Actualizar datos basicos de la orden
     if (updateRepairOrderDto.problemDescription)
       repairOrder.problemDescription = updateRepairOrderDto.problemDescription;
@@ -99,12 +121,29 @@ export class RepairOrdersService {
       repairOrder.diagnosis = updateRepairOrderDto.diagnosis;
     if (updateRepairOrderDto.estimatedCost)
       repairOrder.estimatedCost = updateRepairOrderDto.estimatedCost;
+
     if (updateRepairOrderDto.status) {
       repairOrder.status = updateRepairOrderDto.status;
       await this.notificationService.create(
         repairOrder,
         updateRepairOrderDto.status,
       );
+      // Notificar cambio de estado
+      if (updateRepairOrderDto.status !== previousStatus) {
+        try {
+          await firstValueFrom(
+            this.httpService.post('http://localhost:8081/notify',{
+              type : 'repair_order_status',
+              action: 'updated',
+              id: id,
+              newStatus: updateRepairOrderDto.status,
+            }),
+          );
+          console.log(`✅ Notificación WS enviada: estado cambiado a ${updateRepairOrderDto.status}`);
+        } catch (error) {
+          console.error('Error notificando al WebSocket Go:', error.message);
+        }
+      }
     }
     if (
       updateRepairOrderDto.warrantyStartDate &&

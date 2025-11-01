@@ -10,6 +10,8 @@ import { RepairOrderReview } from './entities/repair-order-review.entity';
 import { Repository } from 'typeorm';
 import { RepairOrdersService } from 'src/repair-orders/repair-orders.service';
 import { OrderRepairStatus } from 'src/repair-orders/entities/enum/order-repair.enum';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class RepairOrderReviewsService {
@@ -18,6 +20,8 @@ export class RepairOrderReviewsService {
     private readonly repairOrderReviewRepository: Repository<RepairOrderReview>,
 
     private readonly repairOrdersService: RepairOrdersService,
+
+    private readonly http: HttpService,
   ) {}
 
   async create(createRepairOrderReviewDto: CreateRepairOrderReviewDto) {
@@ -46,7 +50,22 @@ export class RepairOrderReviewsService {
       ...createRepairOrderReviewDto,
       repairOrder,
     });
-    return await this.repairOrderReviewRepository.save(review);
+    const saveReview = await this.repairOrderReviewRepository.save(review);
+
+    try {
+      await firstValueFrom(
+        this.http.post('http://localhost:8081/notify', {
+          type: 'review',
+          action: 'created',
+          id: saveReview.id,
+        }),
+      );
+      console.log('Notification sent successfully');
+    } catch (error) {
+      console.error('Error sending notification:', error);
+    }
+
+    return saveReview;
   }
 
   async findAll() {

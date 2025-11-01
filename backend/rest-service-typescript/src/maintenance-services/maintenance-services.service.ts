@@ -4,17 +4,35 @@ import { UpdateMaintenanceServiceDto } from './dto/update-maintenance-service.dt
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MaintenanceService } from './entities/maintenance-service.entity';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class MaintenanceServicesService {
   constructor(
     @InjectRepository(MaintenanceService)
     private readonly serviceRepository: Repository<MaintenanceService>,
+
+    private readonly http: HttpService,
   ) {}
 
   async create(createServiceDto: CreateMaintenanceServiceDto) {
     const service = this.serviceRepository.create(createServiceDto);
-    return await this.serviceRepository.save(service);
+    const resul = await this.serviceRepository.save(service);
+
+    try {
+      await firstValueFrom(
+        this.http.post('http://localhost:8081/notify', {
+          type: 'mantenance_service_created',
+          action: 'create',
+          id: resul.id,
+        }),
+      );
+      console.log('Notification sent successfully');
+    } catch (error) {
+      console.error('Error sending notification:', error);
+    }
+    return resul;
   }
 
   async findAll() {
