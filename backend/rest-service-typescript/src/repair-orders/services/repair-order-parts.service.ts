@@ -68,13 +68,6 @@ export class RepairOrderPartsService {
 
       // Devolver el stock del repuesto anterior
       await this.sparePartsService.increaseStock(oldPart.id, oldQuantity);
-
-      // Verificar disponibilidad del nuevo repuesto
-      if (newPart.stock < newQuantity) {
-        throw new BadRequestException(
-          `Insufficient stock for ${newPart.name}. Available: ${newPart.stock}`,
-        );
-      }
       await this.sparePartsService.decreaseStock(newPart.id, newQuantity);
       repairOrderPart.part = newPart;
       repairOrderPart.quantity = newQuantity;

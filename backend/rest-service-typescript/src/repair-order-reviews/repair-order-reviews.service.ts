@@ -89,16 +89,6 @@ export class RepairOrderReviewsService {
     updateRepairOrderReviewDto: UpdateRepairOrderReviewDto,
   ) {
     const review = await this.findOne(id);
-    if (
-      updateRepairOrderReviewDto.repairOrderId &&
-      updateRepairOrderReviewDto.repairOrderId !== review.repairOrder.id
-    ) {
-      const newRepairOrder = await this.repairOrdersService.findOne(
-        updateRepairOrderReviewDto.repairOrderId,
-      );
-      review.repairOrder = newRepairOrder;
-    }
-    delete updateRepairOrderReviewDto.repairOrderId;
     Object.assign(review, updateRepairOrderReviewDto);
 
     return await this.repairOrderReviewRepository.save(review);

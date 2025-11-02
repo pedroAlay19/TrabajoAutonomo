@@ -16,6 +16,7 @@ export class CreateRepairOrderPartDto {
     example: 'c0cbe78e-8a26-4b91-a8f7-44baf820aa12',
   })
   @IsUUID()
+  @IsNotEmpty()
   partId: string;
 
   @ApiProperty({

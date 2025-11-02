@@ -1,8 +1,8 @@
-import { ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
 import { CreateRepairOrderReviewDto } from './create-repair-order-review.dto';
 import { IsBoolean, IsOptional } from 'class-validator';
 
-export class UpdateRepairOrderReviewDto extends PartialType(CreateRepairOrderReviewDto) {
+export class UpdateRepairOrderReviewDto extends PartialType(OmitType(CreateRepairOrderReviewDto, ['repairOrderId'])) {
   @ApiPropertyOptional({
     description: 'Indicates whether the review is visible to other users.',
     example: true,

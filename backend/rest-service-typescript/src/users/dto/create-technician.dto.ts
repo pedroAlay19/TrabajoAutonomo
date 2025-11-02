@@ -1,4 +1,4 @@
-import { IsBoolean, IsInt, IsNotEmpty, IsString, Min } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 import { CreateUserDto } from './create-user.dto';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -18,12 +18,6 @@ export class CreateTechnicianDto extends CreateUserDto {
   })
   @IsInt()
   @Min(0)
+  @IsOptional()
   experienceYears!: number;
-
-  @ApiProperty({
-    example: true,
-    description: 'Indicates whether the technician is currently active.',
-  })
-  @IsBoolean()
-  active: boolean;
 }

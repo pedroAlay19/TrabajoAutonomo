@@ -18,38 +18,45 @@ export class SparePartsService {
     private readonly sparePartRepository: Repository<SparePart>,
 
     private readonly http: HttpService,
-
   ) {}
 
   async create(createSparePartDto: CreateSparePartDto) {
+    const { name } = createSparePartDto;
+    const existingPart = await this.sparePartRepository.findOneBy({ name });
+    if (existingPart) {
+      throw new BadRequestException(
+        `Spare part with name ${name} already exists`,
+      );
+    }
     const sparePart = this.sparePartRepository.create(createSparePartDto);
     const result = await this.sparePartRepository.save(sparePart);
 
     try {
-      await firstValueFrom(this.http.post('http://localhost:8081/notify', {
-        type: 'spare_part',
-        action: 'created',
-        id: result.id,
-      }),
-    );
-    console.log('Notification sent for spare part creation');
+      await firstValueFrom(
+        this.http.post('http://localhost:8081/notify', {
+          type: 'spare_part',
+          action: 'created',
+          id: result.id,
+        }),
+      );
+      console.log('Notification sent for spare part creation');
     } catch (error) {
-      console.error('Failed to send notification for spare part creation', error);
+      console.error(
+        'Failed to send notification for spare part creation',
+        error,
+      );
     }
 
     return result;
   }
 
   async findAll() {
-    return await this.sparePartRepository.find({
-      relations: ['repairOrderParts'],
-    });
+    return await this.sparePartRepository.find({});
   }
 
   async findOne(id: string) {
     const sparePart = await this.sparePartRepository.findOne({
       where: { id },
-      relations: ['repairOrderParts'],
     });
 
     if (!sparePart) {
@@ -60,9 +67,8 @@ export class SparePartsService {
   }
 
   async update(id: string, updateSparePartDto: UpdateSparePartDto) {
-
     // Buscamos primero el registro original para comparar el stock
-    const existingPart = await this.sparePartRepository.findOneBy({id});
+    const existingPart = await this.sparePartRepository.findOneBy({ id });
     if (!existingPart) {
       throw new NotFoundException(`Spare part with id ${id} not found`);
     }
@@ -70,9 +76,7 @@ export class SparePartsService {
     // Guardamos el stock anterior
     const previousStock = existingPart.stock;
 
-
-    
-  // combina los nuevos valores con el registro existente
+    // combina los nuevos valores con el registro existente
     const sparePart = await this.sparePartRepository.preload({
       id,
       ...updateSparePartDto,
@@ -94,12 +98,17 @@ export class SparePartsService {
             type: 'spare_part_stock',
             action: 'updated',
             id: updatePart.id,
-            newStock: updateSparePartDto.stock
+            newStock: updateSparePartDto.stock,
           }),
         );
-        console.log(`WS: Stock actualizado para ${updatePart.id} → ${updatePart.stock}`);
+        console.log(
+          `WS: Stock actualizado para ${updatePart.id} → ${updatePart.stock}`,
+        );
       } catch (error) {
-        console.error('Error al enviar notificación de actualización de stock', error);
+        console.error(
+          'Error al enviar notificación de actualización de stock',
+          error,
+        );
       }
     }
     return updatePart;

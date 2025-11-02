@@ -1,8 +1,8 @@
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 import { CreateRepairOrderDetailDto } from './create-repair-order-detail.dto';
-import { IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
 
-export class UpdateRepairOrderDetailDto extends PartialType(CreateRepairOrderDetailDto){
+export class UpdateRepairOrderDetailDto extends PartialType(OmitType(CreateRepairOrderDetailDto, ['repairOrderId'])) {
 
   @ApiProperty({
     description: 'Image URL with visual evidence of the repair.',
@@ -19,14 +19,4 @@ export class UpdateRepairOrderDetailDto extends PartialType(CreateRepairOrderDet
   })
   @IsUUID()
   id: string;
-
-  @ApiProperty({
-    description: 'Subtotal after discount.',
-    example: 90.0,
-    required: false,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  subtotal: number; // 
 }

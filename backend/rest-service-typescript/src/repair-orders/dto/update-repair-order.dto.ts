@@ -6,7 +6,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
   ValidateNested,
 } from 'class-validator';
 import { UpdateRepairOrderDetailDto } from './details/update-repair-order-detail';
@@ -15,15 +14,6 @@ import { UpdateRepairOrderPartDto } from './parts/update-repair-order-part.dto';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateRepairOrderDto {
-  @ApiProperty({
-    description: 'Equipment ID (optional).',
-    example: 'b16d2a1f-6d7c-4f22-91d3-d2b830b3d94b',
-    required: false,
-  })
-  @IsOptional()
-  @IsUUID()
-  equipmentId?: string;
-
   @ApiProperty({
     description: 'Updated problem description.',
     example: 'Laptop randomly restarts when charging.',

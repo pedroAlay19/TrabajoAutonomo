@@ -23,12 +23,14 @@ export class CreateUserDto {
     description: 'Unique email address of the user.',
   })
   @IsEmail()
+  @IsNotEmpty()
   email!: string;
 
   @ApiProperty({
     example: '+593987654321',
     description: 'Valid Ecuadorian phone number.',
   })
+  @IsNotEmpty()
   @IsPhoneNumber('EC', { message: 'Phone must be a valid Ecuadorian number' })
   phone!: string;
 

@@ -17,6 +17,15 @@ export class MaintenanceServicesService {
   ) {}
 
   async create(createServiceDto: CreateMaintenanceServiceDto) {
+    const { serviceName } = createServiceDto;
+    const existingService = await this.serviceRepository.findOneBy({
+      serviceName,
+    });
+    if (existingService) {
+      throw new NotFoundException(
+        `Service with name ${serviceName} already exists`,
+      );
+    }
     const service = this.serviceRepository.create(createServiceDto);
     const resul = await this.serviceRepository.save(service);
 
@@ -36,15 +45,12 @@ export class MaintenanceServicesService {
   }
 
   async findAll() {
-    return await this.serviceRepository.find({
-      relations: ['repairOrderDetails'],
-    });
+    return await this.serviceRepository.find();
   }
 
   async findOne(id: string) {
     const serviceFound = await this.serviceRepository.findOne({
       where: { id },
-      relations: ['repairOrderDetails'],
     });
     if (!serviceFound)
       throw new NotFoundException(`Service with id ${id} not found`);
@@ -52,6 +58,16 @@ export class MaintenanceServicesService {
   }
 
   async update(id: string, updateServiceDto: UpdateMaintenanceServiceDto) {
+    if (updateServiceDto.serviceName) {
+      const existingService = await this.serviceRepository.findOneBy({
+        serviceName: updateServiceDto.serviceName,
+      });
+      if (existingService && existingService.id !== id) {
+        throw new NotFoundException(
+          `Service with name ${updateServiceDto.serviceName} already exists`,
+        );
+      }
+    }
     const serviceFound = await this.serviceRepository.findOneBy({ id });
     if (!serviceFound)
       throw new NotFoundException(`Service with id ${id} not found`);

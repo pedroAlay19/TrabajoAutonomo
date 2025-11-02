@@ -69,7 +69,6 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Get(':id')
   @ApiOperation({ summary: 'Retrieve user or technician by ID' })
   @ApiParam({
     name: 'id',

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRepairOrderDto } from './dto/create-repair-order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RepairOrder } from './entities/repair-order.entity';
@@ -30,17 +30,14 @@ export class RepairOrdersService {
   ) {}
 
   async create(createRepairOrderDto: CreateRepairOrderDto) {
-    // Buscar el equipo
     const equipmentFound = await this.equipmentsService.findOne(
       createRepairOrderDto.equipmentId,
     );
 
     // Crear la orden principal
     const repairOrder = this.repairOrderRepository.create({
+      ...createRepairOrderDto,
       equipment: equipmentFound,
-      problemDescription: createRepairOrderDto.problemDescription,
-      diagnosis: createRepairOrderDto.diagnosis,
-      estimatedCost: createRepairOrderDto.estimatedCost,
       finalCost: 0,
     });
     const savedOrderRepair = await this.repairOrderRepository.save(repairOrder);
@@ -48,12 +45,12 @@ export class RepairOrdersService {
     // Crear los detalles asociados
     const details = await this.repairOrderDetailsService.create(
       createRepairOrderDto.details,
-      repairOrder,
+      savedOrderRepair,
     );
     // Crear las piezas asociadas
     const parts = await this.repairOrderPartsService.create(
       createRepairOrderDto.parts,
-      repairOrder,
+      savedOrderRepair,
     );
 
     // Calcular costo total de servicios y partes
@@ -66,31 +63,25 @@ export class RepairOrdersService {
 
     // Actualizar la orden con el costo final
     savedOrderRepair.finalCost = finalCost;
-    await this.repairOrderRepository.save(savedOrderRepair);
+    savedOrderRepair.repairOrderDetails = details;
+    savedOrderRepair.repairOrderParts = parts;
+    const savedOrder = await this.repairOrderRepository.save(savedOrderRepair);
 
-    await this.notificationService.create(
-      savedOrderRepair,
-      OrderRepairStatus.OPEN,//
-    );
+    await this.notificationService.create(savedOrder, OrderRepairStatus.OPEN);
 
     try {
       await firstValueFrom(
-        this.httpService.post('http://localhost:8081/notify',{
+        this.httpService.post('http://localhost:8081/notify', {
           type: 'repair_order',
           action: 'created',
-          id: savedOrderRepair.id,
+          id: savedOrder.id,
         }),
       );
       console.log('Notificación enviada al WebSocket Go');
     } catch (error) {
-      console.error('Error notificando al WebSocket Go:', error.message)
+      console.error('Error notificando al WebSocket Go:', error.message);
     }
-
-    return {
-      ...savedOrderRepair,
-      details,
-      parts,
-    };
+    return { savedOrder };
   }
 
   async findAll() {
@@ -109,67 +100,20 @@ export class RepairOrdersService {
 
   async update(id: string, updateRepairOrderDto: UpdateRepairOrderDto) {
     const repairOrder = await this.findOne(id);
-
-    // se guarda el estado anterior
     const previousStatus = repairOrder.status;
 
-
-    // Actualizar datos basicos de la orden
-    if (updateRepairOrderDto.problemDescription)
-      repairOrder.problemDescription = updateRepairOrderDto.problemDescription;
-    if (updateRepairOrderDto.diagnosis)
-      repairOrder.diagnosis = updateRepairOrderDto.diagnosis;
-    if (updateRepairOrderDto.estimatedCost)
-      repairOrder.estimatedCost = updateRepairOrderDto.estimatedCost;
-
-    if (updateRepairOrderDto.status) {
-      repairOrder.status = updateRepairOrderDto.status;
-      await this.notificationService.create(
-        repairOrder,
-        updateRepairOrderDto.status,
-      );
-      // Notificar cambio de estado
-      if (updateRepairOrderDto.status !== previousStatus) {
-        try {
-          await firstValueFrom(
-            this.httpService.post('http://localhost:8081/notify',{
-              type : 'repair_order_status',
-              action: 'updated',
-              id: id,
-              newStatus: updateRepairOrderDto.status,
-            }),
-          );
-          console.log(`✅ Notificación WS enviada: estado cambiado a ${updateRepairOrderDto.status}`);
-        } catch (error) {
-          console.error('Error notificando al WebSocket Go:', error.message);
-        }
-      }
-    }
-    if (
-      updateRepairOrderDto.warrantyStartDate &&
-      updateRepairOrderDto.warrantyEndDate
-    ) {
-      repairOrder.warrantyStartDate = updateRepairOrderDto.warrantyStartDate;
-      repairOrder.warrantyEndDate = updateRepairOrderDto.warrantyEndDate;
-    }
-
+    this.updateBasicInfo(repairOrder, updateRepairOrderDto);
+    await this.handleStatusChange(repairOrder, updateRepairOrderDto.status, previousStatus);
+    this.updateWarrantyDates(repairOrder, updateRepairOrderDto);
+    
     // Actualizar detalles (servicios de mantenimiento)
-    if (
-      updateRepairOrderDto.details &&
-      updateRepairOrderDto.details.length > 0
-    ) {
-      const updatedDetails = await this.repairOrderDetailsService.updateMany(
-        updateRepairOrderDto.details,
-      );
-      repairOrder.repairOrderDetails = updatedDetails;
+    if (updateRepairOrderDto.details?.length) {
+      repairOrder.repairOrderDetails = await this.repairOrderDetailsService.updateMany(updateRepairOrderDto.details);
     }
 
     // Actualizar las piezas del mantenimiento
-    if (updateRepairOrderDto.parts && updateRepairOrderDto.parts.length > 0) {
-      const updatedParts = await this.repairOrderPartsService.updateMany(
-        updateRepairOrderDto.parts,
-      );
-      repairOrder.repairOrderParts = updatedParts;
+    if (updateRepairOrderDto.parts?.length) {
+      repairOrder.repairOrderParts = await this.repairOrderPartsService.updateMany(updateRepairOrderDto.parts);
     }
 
     repairOrder.finalCost = await this.recalculateFinalCost(repairOrder.id);
@@ -178,8 +122,61 @@ export class RepairOrdersService {
 
   async remove(id: string) {
     const repairOrder = await this.findOne(id);
-    await this.repairOrderRepository.remove(repairOrder)
+    await this.repairOrderRepository.remove(repairOrder);
   }
+
+  // Funciones privadas auxiliares
+
+  private updateBasicInfo(repairOrder: RepairOrder, dto: UpdateRepairOrderDto) {
+    if (dto.problemDescription)
+      repairOrder.problemDescription = dto.problemDescription;
+
+    if (dto.diagnosis) repairOrder.diagnosis = dto.diagnosis;
+
+    if (dto.estimatedCost) repairOrder.estimatedCost = dto.estimatedCost;
+  }
+
+  private async handleStatusChange(
+    repairOrder: RepairOrder,
+    newStatus?: OrderRepairStatus,
+    previousStatus?: OrderRepairStatus,
+  ) {
+    if (!newStatus || newStatus === previousStatus) return;
+    repairOrder.status = newStatus;
+    await this.notificationService.create(repairOrder, newStatus);
+
+    try {
+      await firstValueFrom(
+        this.httpService.post('http://localhost:8081/notify', {
+          type: 'repair_order_status',
+          action: 'updated',
+          id: repairOrder.id,
+          newStatus,
+        }),
+      );
+      console.log(`Notificación WS enviada: estado cambiado a ${newStatus}`);
+    } catch (error) {
+      console.error('Error notificando al WebSocket Go:', error.message);
+    }
+  }
+
+  private updateWarrantyDates(repairOrder: RepairOrder, dto: UpdateRepairOrderDto) {
+  const { warrantyStartDate, warrantyEndDate } = dto;
+
+  if (!warrantyStartDate || !warrantyEndDate) return;
+
+  const start = new Date(warrantyStartDate);
+  const end = new Date(warrantyEndDate);
+  
+  if (start >= end) {
+    throw new BadRequestException(
+      'Warranty start date must be earlier than the end date.',
+    );
+  }
+  repairOrder.warrantyStartDate = start;
+  repairOrder.warrantyEndDate = end;
+}
+
 
   // Funcion para recalcular el costo final de un RepairOrder
   private async recalculateFinalCost(orderId: string): Promise<number> {

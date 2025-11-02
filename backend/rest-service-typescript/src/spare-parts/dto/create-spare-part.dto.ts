@@ -24,7 +24,7 @@ export class CreateSparePartDto {
     minimum: 0,
   })
   @IsNumber()
-  @Min(0)
+  @Min(1)
   @IsNotEmpty()
   stock: number;
 

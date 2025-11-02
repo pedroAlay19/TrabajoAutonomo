@@ -9,7 +9,7 @@ export class CreateRepairOrderDetailDto {
     required: false
   })
   @IsUUID()
-  @IsOptional()
+  @IsNotEmpty()
   repairOrderId: string;
 
   @ApiProperty({

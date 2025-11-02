@@ -7,7 +7,7 @@ export class MaintenanceService {
     @PrimaryGeneratedColumn('uuid')
       id!: string;
     
-      @Column()
+      @Column() // No olvides ponerle unique true
       serviceName!: string;
     
       @Column()

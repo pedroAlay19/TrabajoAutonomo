@@ -13,27 +13,35 @@ export class NotificationService {
   ) {}
 
   async create(repairOrder: RepairOrder, status: OrderRepairStatus): Promise<RepairOrderNotification> {
-    const statusMessages = {
-      [OrderRepairStatus.OPEN]: {
-        title: 'Ticket abierto',
-        message: 'Se ha creado un nuevo ticket de reparación.',
-      },
-      [OrderRepairStatus.IN_PROGRESS]: {
-        title: 'En progreso',
-        message: 'La reparación ha comenzado.',
-      },
-      [OrderRepairStatus.RESOLVED]: {
-        title: 'Ticket resuelto',
-        message: 'La reparación ha sido completada.',
-      },
-      [OrderRepairStatus.CLOSED]: {
-        title: 'Ticket cerrado',
-        message: 'El ticket ha sido cerrado.',
-      },
-    };
+  let title: string;
+  let message: string;
 
-    const { title, message } = statusMessages[status];
+  switch (status) {
+    case OrderRepairStatus.OPEN:
+      title = 'Repair Order Opened';
+      message = 'A new repair order has been created.';
+      break;
 
+    case OrderRepairStatus.IN_PROGRESS:
+      title = 'Repair In Progress';
+      message = 'The repair order is currently being worked on.';
+      break;
+
+    case OrderRepairStatus.RESOLVED:
+      title = 'Repair Order Resolved';
+      message = 'The repair order has been successfully completed.';
+      break;
+
+    case OrderRepairStatus.CLOSED:
+      title = 'Repair Order Closed';
+      message = 'The repair order has been closed.';
+      break;
+
+    default:
+      title = 'Repair Order Update';
+      message = 'There has been an update to the repair order status.';
+      break;
+  }
     const notification = this.notificationRepository.create({
       repairOrder,
       title,

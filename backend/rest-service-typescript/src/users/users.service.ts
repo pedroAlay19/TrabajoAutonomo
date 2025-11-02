@@ -23,11 +23,21 @@ export class UsersService {
   ) {}
 
   async createUser(createUserDto: CreateUserDto) {
+    const { email } = createUserDto;
+    const existingUser = await this.userRepository.findOne({ where: { email } });
+    if (existingUser) {
+      throw new BadRequestException('A user already exists with this associated email address.');
+    }
     const user = this.userRepository.create(createUserDto);
     return await this.userRepository.save(user);
   }
 
   async createTechnician(createTechnicianDto: CreateTechnicianDto) {
+    const { email } = createTechnicianDto;
+    const existingTechnician = await this.userRepository.findOne({ where: { email } });
+    if (existingTechnician) {
+      throw new BadRequestException('A user already exists with this associated email address.');
+    }
     const technician = this.technicianRepository.create(createTechnicianDto);
     return await this.technicianRepository.save(technician);
   }

@@ -7,6 +7,7 @@ import { MaintenanceServicesService } from 'src/maintenance-services/maintenance
 import { UsersService } from 'src/users/users.service';
 import { CreateRepairOrderDetailDto } from '../dto/details/create-repair-order-detail.dto';
 import { UpdateRepairOrderDetailDto } from '../dto/details/update-repair-order-detail';
+import { TicketServiceStatus } from '../entities/enum/order-repair.enum';
 
 @Injectable()
 export class RepairOrderDetailsService {
@@ -35,7 +36,10 @@ export class RepairOrderDetailsService {
         repairOrder,
         service,
         technician,
+        unitPrice: d.unitPrice,
+        discount: d.discount ?? 0,
         subTotal: d.unitPrice - (d?.discount ?? 0),
+        status: TicketServiceStatus.PENDING,
         notes: d.notes,
       });
 
