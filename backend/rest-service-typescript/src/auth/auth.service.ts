@@ -14,14 +14,13 @@ export class AuthService {
   ) {}
 
   async register(registerDto: CreateUserDto) {
-    return await this.usersService.createUser({
-      ...registerDto,
-      password: await bcrypt.hash(registerDto.password, 10),
-    });
+    return await this.usersService.createUser(registerDto);
   }
 
   async signIn(signInDto: SignInDto): Promise<{ access_token: string }> {
-    const user = await this.usersService.findByEmail(signInDto.email);
+    const user = await this.usersService.findByEmailWithPassword(
+      signInDto.email,
+    );
     const isPasswordValid = await bcrypt.compare(
       signInDto.password,
       user.password,

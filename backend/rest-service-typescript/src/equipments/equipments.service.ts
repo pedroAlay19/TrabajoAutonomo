@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Equipment } from './entities/equipment.entity';
 import { Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
+import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
+import { UserRole } from 'src/users/entities/enums/user-role.enum';
 
 @Injectable()
 export class EquipmentsService {
@@ -15,8 +17,8 @@ export class EquipmentsService {
     private readonly userService: UsersService,
   ) {}
 
-  async create(createEquipmentDto: CreateEquipmentDto) {
-    const userFound = await this.userService.findOne(createEquipmentDto.userId);
+  async create(createEquipmentDto: CreateEquipmentDto, user: JwtPayload) {
+    const userFound = await this.userService.findOne(user.sub);
 
     const equipment = this.equipmentRepository.create({
       ...createEquipmentDto,
@@ -25,34 +27,41 @@ export class EquipmentsService {
     return await this.equipmentRepository.save(equipment);
   }
 
-  async findAll() {
+  async findAll(user: JwtPayload) {
+    if (user.role === UserRole.ADMIN) {
+      return await this.equipmentRepository.find({
+        relations: ['user', 'repairOrders'],
+        order: { createdAt: 'DESC' },
+      });
+    }
     return await this.equipmentRepository.find({
-      relations: ['user', 'repairOrders'],
+      relations: ['repairOrders'],
+      where: { user: { id: user.sub } },
+      order: { createdAt: 'DESC' },
     });
   }
 
-  async findOne(id: string) {
-    const equipmentFound = await this.equipmentRepository.findOne({
-      where: { id },
+  async findOne(id: string, user: JwtPayload) {
+    const whereCondition =
+      user.role === UserRole.ADMIN ? { id } : { id, user: { id: user.sub } };
+
+    const equipment = await this.equipmentRepository.findOne({
+      where: whereCondition,
       relations: ['user', 'repairOrders'],
     });
-    if (!equipmentFound)
-      throw new NotFoundException(`Equipment with id ${id} not found`);
-    return equipmentFound;
-  }
-
-  async update(id: string, updateEquipmentDto: UpdateEquipmentDto) {
-    const equipmentFound = await this.equipmentRepository.findOneBy({ id });
-    if (!equipmentFound)
-      throw new NotFoundException(`Equipment with id ${id} not found`);
-    await this.equipmentRepository.update(id, updateEquipmentDto);
-    return await this.equipmentRepository.findOneBy({ id });
-  }
-
-  async remove(id: string) {
-    const equipment = await this.equipmentRepository.findOneBy({ id });
     if (!equipment)
       throw new NotFoundException(`Equipment with id ${id} not found`);
+    return equipment;
+  }
+
+  async update(id: string, updateEquipmentDto: UpdateEquipmentDto, user: JwtPayload) {
+    const equipmentFound = await this.findOne(id, user);
+    Object.assign(equipmentFound, updateEquipmentDto);
+    return await this.equipmentRepository.save(equipmentFound);
+  }
+
+  async remove(id: string, user: JwtPayload) {
+    const equipment = await this.findOne(id, user);
     await this.equipmentRepository.remove(equipment);
   }
 }

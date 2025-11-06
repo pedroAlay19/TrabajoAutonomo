@@ -2,52 +2,42 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { RepairOrdersService } from './repair-orders.service';
 import { CreateRepairOrderDto } from './dto/create-repair-order.dto';
 import { UpdateRepairOrderDto } from './dto/update-repair-order.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { UserRole } from '../users/entities/enums/user-role.enum';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { ActiveUser } from '../auth/decorators/active-user.decorator';
+import type{ JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
-@ApiTags('Repair Orders')
 @Controller('repair-orders')
 export class RepairOrdersController {
   constructor(private readonly repairOrdersService: RepairOrdersService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new repair order' })
-  @ApiResponse({ status: 201, description: 'Repair order created successfully.' })
-  @ApiResponse({ status: 400, description: 'Invalid input data.' })
+  @Auth(UserRole.TECHNICIAN)
   create(@Body() createRepairOrderDto: CreateRepairOrderDto) {
     return this.repairOrdersService.create(createRepairOrderDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Retrieve all repair orders' })
-  @ApiResponse({ status: 200, description: 'List of all repair orders retrieved successfully.' })
-  findAll() {
-    return this.repairOrdersService.findAll();
+  @Auth(UserRole.TECHNICIAN, UserRole.ADMIN, UserRole.USER)
+  findAll(@ActiveUser() user: JwtPayload) {
+    return this.repairOrdersService.findAll(user);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Retrieve a repair order by ID' })
-  @ApiParam({ name: 'id', description: 'Repair order ID'})
-  @ApiResponse({ status: 200, description: 'Repair order found.' })
-  @ApiResponse({ status: 404, description: 'Repair order not found.' })
-  findOne(@Param('id') id: string) {
-    return this.repairOrdersService.findOne(id);
+  @Auth(UserRole.TECHNICIAN, UserRole.ADMIN, UserRole.USER)
+  findOne(@Param('id') id: string, @ActiveUser() user: JwtPayload) {
+    return this.repairOrdersService.findOne(id, user);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a repair order by ID' })
-  @ApiParam({ name: 'id', description: 'Repair order ID' })
-  @ApiResponse({ status: 200, description: 'Repair order updated successfully.' })
-  @ApiResponse({ status: 404, description: 'Repair order not found.' })
-  update(@Param('id') id: string, @Body() updateRepairOrderDto: UpdateRepairOrderDto) {
-    return this.repairOrdersService.update(id, updateRepairOrderDto);
+  @Auth(UserRole.TECHNICIAN, UserRole.ADMIN, UserRole.USER)
+  update(@Param('id') id: string, @Body() updateRepairOrderDto: UpdateRepairOrderDto, @ActiveUser() user: JwtPayload) {
+    return this.repairOrdersService.update(id, updateRepairOrderDto, user);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a repair order by ID' })
-  @ApiParam({ name: 'id', description: 'Repair order ID' })
-  @ApiResponse({ status: 200, description: 'Repair order deleted successfully.' })
-  @ApiResponse({ status: 404, description: 'Repair order not found.' })
-  remove(@Param('id') id: string) {
-    return this.repairOrdersService.remove(id);
+  @Auth(UserRole.ADMIN)
+  remove(@Param('id') id: string, @ActiveUser() user: JwtPayload) {
+    return this.repairOrdersService.remove(id, user);
   }
 }

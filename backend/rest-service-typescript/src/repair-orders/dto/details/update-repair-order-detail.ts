@@ -1,8 +1,8 @@
-import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
+import { ApiProperty,PartialType } from '@nestjs/swagger';
 import { CreateRepairOrderDetailDto } from './create-repair-order-detail.dto';
 import { IsOptional, IsString, IsUUID } from 'class-validator';
 
-export class UpdateRepairOrderDetailDto extends PartialType(OmitType(CreateRepairOrderDetailDto, ['repairOrderId'])) {
+export class UpdateRepairOrderDetailDto extends PartialType(CreateRepairOrderDetailDto) {
 
   @ApiProperty({
     description: 'Image URL with visual evidence of the repair.',

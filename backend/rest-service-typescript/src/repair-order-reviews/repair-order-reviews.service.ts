@@ -12,6 +12,8 @@ import { RepairOrdersService } from 'src/repair-orders/repair-orders.service';
 import { OrderRepairStatus } from 'src/repair-orders/entities/enum/order-repair.enum';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
+import { UserRole } from 'src/users/entities/enums/user-role.enum';
 
 @Injectable()
 export class RepairOrderReviewsService {
@@ -24,9 +26,13 @@ export class RepairOrderReviewsService {
     private readonly http: HttpService,
   ) {}
 
-  async create(createRepairOrderReviewDto: CreateRepairOrderReviewDto) {
+  async create(
+    createRepairOrderReviewDto: CreateRepairOrderReviewDto,
+    user: JwtPayload,
+  ) {
     const repairOrder = await this.repairOrdersService.findOne(
       createRepairOrderReviewDto.repairOrderId,
+      user,
     );
     if (
       repairOrder.status !== OrderRepairStatus.RESOLVED &&
@@ -68,16 +74,47 @@ export class RepairOrderReviewsService {
     return saveReview;
   }
 
-  async findAll() {
-    return await this.repairOrderReviewRepository.find({
+  async findAll(user: JwtPayload) {
+    const reviews = await this.repairOrderReviewRepository.find({
       relations: ['repairOrder'],
     });
+
+    switch (user.role) {
+      case UserRole.ADMIN:
+        return reviews;
+
+      case UserRole.TECHNICIAN: {
+        return await this.repairOrderReviewRepository.find({
+          where: {
+            repairOrder: {
+              repairOrderDetails: { technician: { id: user.sub } },
+            },
+          },
+        });
+      }
+
+      case UserRole.USER: {
+        return await this.repairOrderReviewRepository.find({
+          where: { repairOrder: { equipment: { user: { id: user.sub } } } },
+        });
+      }
+      default:
+        return [];
+    }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, user: JwtPayload) {
+    if (user.role === UserRole.ADMIN) {
+      const reviewFound = await this.repairOrderReviewRepository.findOne({
+        where: { id },
+      });
+      if (!reviewFound)
+        throw new NotFoundException(`Review with id ${id} not found`);
+      return reviewFound;
+    }
+
     const reviewFound = await this.repairOrderReviewRepository.findOne({
-      where: { id },
-      relations: ['repairOrder'],
+      where: { repairOrder: { equipment: { user: { id: user.sub } } } },
     });
     if (!reviewFound)
       throw new NotFoundException(`Review with id ${id} not found`);
@@ -87,15 +124,15 @@ export class RepairOrderReviewsService {
   async update(
     id: string,
     updateRepairOrderReviewDto: UpdateRepairOrderReviewDto,
+    user: JwtPayload,
   ) {
-    const review = await this.findOne(id);
+    const review = await this.findOne(id, user);
     Object.assign(review, updateRepairOrderReviewDto);
-
     return await this.repairOrderReviewRepository.save(review);
   }
 
-  async remove(id: string) {
-    const review = await this.findOne(id);
+  async remove(id: string, user: JwtPayload) {
+    const review = await this.findOne(id, user);
     await this.repairOrderReviewRepository.remove(review);
   }
 }

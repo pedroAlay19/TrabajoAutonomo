@@ -1,16 +1,8 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { EquipmentType } from '../entities/enums/equipment.enum';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateEquipmentDto {
-  @ApiProperty({
-    example: '3fbd8c54-b9f3-4e22-94e4-905a8bb12c99',
-    description: 'UUID of the user who owns this equipment',
-  })
-  @IsUUID()
-  @IsNotEmpty()
-  userId: string;
-
   @ApiProperty({
     example: 'Laptop HP Pavilion',
     description: 'Equipment name',

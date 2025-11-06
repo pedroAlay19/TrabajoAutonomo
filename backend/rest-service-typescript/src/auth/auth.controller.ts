@@ -9,10 +9,11 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/signin.dto';
-import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { UserRole } from 'src/users/entities/enums/user-role.enum';
 import { Auth } from './decorators/auth.decorator';
+import { ActiveUser } from './decorators/active-user.decorator';
+import type{ JwtPayload } from './interfaces/jwt-payload.interface';
+import { UserRole } from 'src/users/entities/enums/user-role.enum';
 
 @Controller('auth')
 export class AuthController {
@@ -28,10 +29,10 @@ export class AuthController {
   signIn(@Body() signInDto: SignInDto) {
     return this.authService.signIn(signInDto);
   }
-  
+
   @Get('profile')
   @Auth(UserRole.TECHNICIAN)
-  getProfile(@Request() req: { user: JwtPayload}) {
-    return req.user;
+  getProfile(@ActiveUser() user: JwtPayload) {
+    return user;
   }
 }

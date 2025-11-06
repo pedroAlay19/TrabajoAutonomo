@@ -3,14 +3,14 @@ import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from "class-v
 
 export class CreateRepairOrderDetailDto {
 
-  @ApiProperty({
-    description: 'Repair order ID this detail belongs to.',
-    example: 'c0cbe78e-8a26-4b91-a8f7-44baf820aa12',
-    required: false
-  })
-  @IsUUID()
-  @IsNotEmpty()
-  repairOrderId: string;
+  // @ApiProperty({
+  //   description: 'Repair order ID this detail belongs to.',
+  //   example: 'c0cbe78e-8a26-4b91-a8f7-44baf820aa12',
+  //   required: false
+  // })
+  // @IsUUID()
+  // @IsNotEmpty()
+  // repairOrderId: string;
 
   @ApiProperty({
     description: 'The ID of the maintenance service performed.',

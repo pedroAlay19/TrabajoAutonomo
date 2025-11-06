@@ -92,6 +92,16 @@ export class UsersService {
     return user;
   }
 
+  async findByEmailWithPassword(email: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'password', 'role'],
+    });
+    if (!user)
+      throw new UnauthorizedException(`User with email ${email} not found`);
+    return user;
+  }
+
   async updateUser(id: string, updateUserDto: UpdateUserDto) {
     const userFound = await this.userRepository.findOneBy({ id });
     if (!userFound) throw new NotFoundException(`User with id ${id} not found`);

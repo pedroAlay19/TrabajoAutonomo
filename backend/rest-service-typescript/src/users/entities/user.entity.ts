@@ -17,7 +17,7 @@ export class User {
   @Column({unique: true})
   email!: string;
 
-  @Column({nullable: true}) // Por ahora para no tener problemas con la bd
+  @Column({nullable: true, select: false}) // Por ahora para no tener problemas con la bd
   password!: string
 
   @Column({nullable: true})
