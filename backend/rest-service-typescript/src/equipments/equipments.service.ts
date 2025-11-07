@@ -41,6 +41,17 @@ export class EquipmentsService {
     });
   }
 
+  // otro findOne que solo resiva id string
+  async findOneById(id: string) {
+    const equipment = await this.equipmentRepository.findOne({
+      where: { id },
+      relations: ['user', 'repairOrders'],
+    });
+    if (!equipment)
+      throw new NotFoundException(`Equipment with id ${id} not found`);
+    return equipment;
+  }
+
   async findOne(id: string, user: JwtPayload) {
     const whereCondition =
       user.role === UserRole.ADMIN ? { id } : { id, user: { id: user.sub } };

@@ -89,8 +89,8 @@ func main() {
 	http.HandleFunc("/ws", handleWebSocket)
 	http.HandleFunc("/notify", handleNotify)
 
-	fmt.Println("🚀 Servidor WebSocket escuchando en http://localhost:8081")
-	fmt.Println("   Rutas disponibles:")
+	fmt.Println("Servidor WebSocket escuchando en http://localhost:8081")
+	fmt.Println(" Rutas disponibles:")
 	fmt.Println("   - /ws      (conexión WebSocket desde el frontend)")
 	fmt.Println("   - /notify  (recibe POST HTTP desde NestJS)")
 	http.ListenAndServe(":8081", nil)

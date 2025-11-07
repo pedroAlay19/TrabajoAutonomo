@@ -37,8 +37,8 @@ export class RepairOrdersService {
   ) {}
 
   async create(createRepairOrderDto: CreateRepairOrderDto) {
-    const equipmentFound = await this.equipmentsService.findOne(
-      createRepairOrderDto.equipmentId,
+    const equipmentFound = await this.equipmentsService.findOneById(
+      createRepairOrderDto.equipmentId
     );
 
     // Crear la orden principal
