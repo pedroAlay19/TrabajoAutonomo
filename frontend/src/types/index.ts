@@ -6,8 +6,20 @@ export { EquipmentType, EquipmentStatus } from './equipment.types';
 export type { Equipment, EquipmentFormData } from './equipment.types';
 
 // Repair Order Types
-export { OrderRepairStatus } from './repair-order.types';
-export type { RepairOrder } from './repair-order.types';
+export { 
+  OrderRepairStatus, 
+  TicketServiceStatus, 
+  NotificationStatus 
+} from './repair-order.types';
+export type { 
+  RepairOrder,
+  RepairOrderDetail,
+  RepairOrderPart,
+  RepairOrderReview,
+  Technician,
+  MaintenanceService,
+  SparePart
+} from './repair-order.types';
 
 // Notification Types
 export type { Notification } from './notification.types';

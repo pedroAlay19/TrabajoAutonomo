@@ -14,6 +14,9 @@ export type UpdateEquipmentDto = Partial<CreateEquipmentDto>;
 export const equipments = {
   getAll: () => http.get<Equipment[]>('/equipments', true),
   
+  getById: (id: string) =>
+    http.get<Equipment>(`/equipments/${id}`, true),
+  
   create: (data: CreateEquipmentDto) =>
     http.post<Equipment>('/equipments', data, true),
   

@@ -36,14 +36,14 @@ export default function Profile() {
         getRepairOrders(),
       ]);
 
-      const completedOrders = orders.filter((o: RepairOrder) => o.status === 'CLOSED');
+      const completedOrders = orders.filter((o: RepairOrder) => o.status === 'DELIVERED');
       const totalSpent = completedOrders.reduce(
         (sum: number, order: RepairOrder) => sum + (order.finalCost || order.estimatedCost || 0),
         0
       );
       
       const lastOrder = orders
-        .filter((o: RepairOrder) => o.status === 'CLOSED')
+        .filter((o: RepairOrder) => o.status === 'DELIVERED')
         .sort((a: RepairOrder, b: RepairOrder) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
 
       setStats({
@@ -101,19 +101,19 @@ export default function Profile() {
             {/* Profile Card */}
             <div className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden">
               {/* Header */}
-              <div className="bg-linear-to-br from-black to-gray-800 p-8 text-white">
+              <div className="bg-linear-to-r from-blue-600 to-blue-700 p-8 text-white">
                 <div className="flex items-center gap-6">
-                  <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center text-4xl font-bold border-4 border-white/30">
+                  <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-4xl font-bold border-4 border-white/30">
                     {user?.name?.charAt(0)?.toUpperCase()}
                   </div>
                   <div className="flex-1">
                     <h2 className="text-2xl font-bold mb-1">{user?.name}</h2>
-                    <p className="text-white/70">Cliente desde {new Date().getFullYear()}</p>
+                    <p className="text-blue-100">Cliente desde {new Date().getFullYear()}</p>
                   </div>
                   {!isEditing && (
                     <button
                       onClick={() => setIsEditing(true)}
-                      className="bg-white/20 hover:bg-white/30 px-6 py-3 rounded-lg font-medium transition-colors"
+                      className="bg-white/20 hover:bg-white/30 backdrop-blur-sm px-6 py-3 rounded-lg font-medium transition-colors"
                     >
                       ✏️ Editar
                     </button>
@@ -135,7 +135,7 @@ export default function Profile() {
                       disabled={!isEditing}
                       className={`w-full px-4 py-3 border-2 rounded-lg ${
                         isEditing
-                          ? 'border-gray-300 focus:border-black focus:outline-none'
+                          ? 'border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
                           : 'border-gray-200 bg-gray-50 text-gray-600'
                       }`}
                     />
@@ -152,7 +152,7 @@ export default function Profile() {
                       disabled={!isEditing}
                       className={`w-full px-4 py-3 border-2 rounded-lg ${
                         isEditing
-                          ? 'border-gray-300 focus:border-black focus:outline-none'
+                          ? 'border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
                           : 'border-gray-200 bg-gray-50 text-gray-600'
                       }`}
                     />
@@ -199,7 +199,7 @@ export default function Profile() {
                   <div className="flex gap-3 pt-4 border-t border-gray-200">
                     <button
                       onClick={handleSave}
-                      className="flex-1 bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-900 transition-colors"
+                      className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
                     >
                       💾 Guardar Cambios
                     </button>
@@ -242,7 +242,7 @@ export default function Profile() {
           <div className="space-y-8">
             {/* Activity Stats */}
             <div className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden">
-              <div className="bg-gray-900 p-6 text-white">
+              <div className="bg-blue-600 p-6 text-white">
                 <h3 className="text-lg font-bold">Resumen de Actividad</h3>
               </div>
               <div className="p-6 space-y-4">

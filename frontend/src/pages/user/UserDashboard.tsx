@@ -1,21 +1,49 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../hooks/useAuth';
 import { getEquipments, getRepairOrders } from '../../api/api';
 import type { Equipment } from '../../types/equipment.types';
 import type { RepairOrder } from '../../types/repair-order.types';
+import { OrderRepairStatus } from '../../types';
 
 export default function UserDashboard() {
   const { user } = useAuth();
   const [equipments, setEquipments] = useState<Equipment[]>([]);
   const [orders, setOrders] = useState<RepairOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadData();
+    
+    // Auto-refresh cuando la pestaña vuelve a ser visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadData(true);
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Auto-refresh cada 30 segundos
+    const interval = setInterval(() => {
+      loadData(true);
+    }, 30000);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(interval);
+    };
   }, []);
 
-  const loadData = async () => {
+  const loadData = async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+    } else {
+      setRefreshing(true);
+    }
+    
     try {
       const [equipmentsData, ordersData] = await Promise.all([
         getEquipments(),
@@ -27,29 +55,45 @@ export default function UserDashboard() {
       console.error('Error al cargar datos:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+  
+  const handleRefresh = () => {
+    loadData();
+  };
 
-  const activeOrders = orders.filter((o) => o.status === 'OPEN' || o.status === 'IN_PROGRESS');
+  const activeOrders = orders.filter((o) => 
+    o.status === OrderRepairStatus.IN_REVIEW || 
+    o.status === OrderRepairStatus.WAITING_APPROVAL ||
+    o.status === OrderRepairStatus.IN_REPAIR ||
+    o.status === OrderRepairStatus.WAITING_PARTS ||
+    o.status === OrderRepairStatus.READY
+  );
   const warrantyCount = 0; // TODO: Implement when warranty field is available in Equipment type
 
   // Get latest 3 notifications (simulated from active orders)
   const recentNotifications = activeOrders.slice(0, 3).map((order) => ({
     id: order.id,
     title: `Orden #${order.id}`,
-    message: order.status === 'IN_PROGRESS' 
+    message: order.status === OrderRepairStatus.IN_REPAIR
       ? `🟢 En reparación - ${order.equipment.name}`
-      : `🟡 En diagnóstico - ${order.equipment.name}`,
+      : order.status === OrderRepairStatus.READY
+      ? `� Lista para entrega - ${order.equipment.name}`
+      : `🟡 En revisión - ${order.equipment.name}`,
     status: order.status,
     date: order.updatedAt,
   }));
 
-  const getOrderProgress = (status: string) => {
+  const getOrderProgress = (status: OrderRepairStatus) => {
     switch (status) {
-      case 'OPEN': return 25;
-      case 'IN_PROGRESS': return 50;
-      case 'RESOLVED': return 75;
-      case 'CLOSED': return 100;
+      case OrderRepairStatus.IN_REVIEW: return 15;
+      case OrderRepairStatus.WAITING_APPROVAL: return 30;
+      case OrderRepairStatus.IN_REPAIR: return 60;
+      case OrderRepairStatus.WAITING_PARTS: return 50;
+      case OrderRepairStatus.READY: return 90;
+      case OrderRepairStatus.DELIVERED: return 100;
+      case OrderRepairStatus.REJECTED: return 0;
       default: return 0;
     }
   };
@@ -67,10 +111,26 @@ export default function UserDashboard() {
       {/* Top Bar */}
       <div className="bg-white border-b border-gray-200 px-8 py-6">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-1">
-            Hola, {user?.name} 👋
-          </h1>
-          <p className="text-gray-600">Aquí tienes el estado de tus reparaciones</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Hola, {user?.name} 👋
+                </h1>
+                <button
+                  onClick={handleRefresh}
+                  disabled={loading}
+                  className={`p-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all ${
+                    refreshing ? 'animate-spin' : ''
+                  }`}
+                  title="Actualizar"
+                >
+                  <ArrowPathIcon className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-gray-600 mt-1">Aquí tienes el estado de tus reparaciones</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -242,7 +302,8 @@ export default function UserDashboard() {
                     className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors group"
                   >
                     <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center shrink-0 group-hover:bg-gray-200 transition-colors">
-                      {notif.status === 'IN_PROGRESS' ? '🟢' : '🟡'}
+                      {notif.status === OrderRepairStatus.IN_REPAIR ? '🟢' : 
+                       notif.status === OrderRepairStatus.READY ? '�' : '🟡'}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-900 mb-1">{notif.title}</p>
@@ -309,14 +370,18 @@ export default function UserDashboard() {
                         <div className="flex items-center gap-3 mb-1">
                           <p className="font-semibold text-gray-900">Orden #{order.id}</p>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            order.status === 'OPEN' ? 'bg-yellow-100 text-yellow-800' :
-                            order.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
-                            order.status === 'RESOLVED' ? 'bg-green-100 text-green-800' :
-                            'bg-gray-100 text-gray-800'
+                            order.status === OrderRepairStatus.IN_REVIEW || order.status === OrderRepairStatus.WAITING_APPROVAL ? 'bg-yellow-100 text-yellow-800' :
+                            order.status === OrderRepairStatus.IN_REPAIR || order.status === OrderRepairStatus.WAITING_PARTS ? 'bg-blue-100 text-blue-800' :
+                            order.status === OrderRepairStatus.READY ? 'bg-purple-100 text-purple-800' :
+                            order.status === OrderRepairStatus.DELIVERED ? 'bg-green-100 text-green-800' :
+                            'bg-red-100 text-red-800'
                           }`}>
-                            {order.status === 'OPEN' ? 'Abierta' :
-                             order.status === 'IN_PROGRESS' ? 'En Progreso' :
-                             order.status === 'RESOLVED' ? 'Resuelta' : 'Cerrada'}
+                            {order.status === OrderRepairStatus.IN_REVIEW ? 'En Revisión' :
+                             order.status === OrderRepairStatus.WAITING_APPROVAL ? 'Esperando Aprobación' :
+                             order.status === OrderRepairStatus.IN_REPAIR ? 'En Reparación' :
+                             order.status === OrderRepairStatus.WAITING_PARTS ? 'Esperando Piezas' :
+                             order.status === OrderRepairStatus.READY ? 'Lista' :
+                             order.status === OrderRepairStatus.DELIVERED ? 'Entregada' : 'Rechazada'}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 mb-2">{order.equipment.name}</p>

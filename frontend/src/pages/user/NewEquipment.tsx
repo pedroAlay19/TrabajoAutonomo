@@ -98,14 +98,14 @@ export default function NewEquipment() {
                   onClick={() => setFormData({ ...formData, type: type.value })}
                   className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
                     formData.type === type.value
-                      ? "border-black bg-gray-50"
+                      ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
                   <div
                     className={
                       formData.type === type.value
-                        ? "text-black"
+                        ? "text-blue-600"
                         : "text-gray-400"
                     }
                   >
@@ -114,7 +114,7 @@ export default function NewEquipment() {
                   <span
                     className={`text-xs font-medium ${
                       formData.type === type.value
-                        ? "text-black"
+                        ? "text-blue-600"
                         : "text-gray-600"
                     }`}
                   >
@@ -137,7 +137,7 @@ export default function NewEquipment() {
               onChange={(e) =>
                 setFormData({ ...formData, brand: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Ej: HP, Dell, Lenovo"
             />
           </div>
@@ -154,7 +154,7 @@ export default function NewEquipment() {
               onChange={(e) =>
                 setFormData({ ...formData, model: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Ej: Pavilion 15, Optiplex 7090"
             />
           </div>
@@ -171,7 +171,7 @@ export default function NewEquipment() {
               onChange={(e) =>
                 setFormData({ ...formData, serialNumber: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Número de serie del equipo"
             />
           </div>
@@ -179,7 +179,7 @@ export default function NewEquipment() {
           <button
             type="submit"
             disabled={!formData.type || !formData.brand || !formData.model}
-            className="w-full bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-900 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             Registrar Equipo
           </button>

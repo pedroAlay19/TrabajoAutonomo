@@ -12,7 +12,7 @@ export { services } from './services';
 
 // DTOs
 export type { CreateEquipmentDto, UpdateEquipmentDto } from './equipments';
-export type { CreateRepairOrderDto } from './repair-orders';
+export type { CreateRepairOrderDto, UpdateRepairOrderDto, UpdateRepairOrderDetailStatusDto } from './repair-orders';
 export type { CreateReviewDto } from './reviews';
 
 // Legacy exports for backward compatibility
@@ -27,6 +27,7 @@ export const register = auth.register;
 export const getProfile = auth.getProfile;
 
 export const getEquipments = equipments.getAll;
+export const getEquipment = equipments.getById;
 export const createEquipment = equipments.create;
 export const updateEquipment = equipments.update;
 export const deleteEquipment = equipments.delete;
@@ -34,8 +35,12 @@ export const deleteEquipment = equipments.delete;
 export const getRepairOrders = repairOrders.getAll;
 export const getRepairOrder = repairOrders.getById;
 export const createRepairOrder = repairOrders.create;
+export const updateRepairOrder = repairOrders.update;
+export const deleteRepairOrder = repairOrders.delete;
 
 export const createReview = reviews.create;
 export const getBestsReviews = reviews.getBest;
+export const getReviewByRepairOrderId = reviews.findByRepairOrderId;
+export const updateReview = reviews.update;
 
 export const getServices = services.getAll;

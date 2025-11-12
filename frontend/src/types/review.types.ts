@@ -1,8 +1,3 @@
-/**
- * Review Types
- * Tipos relacionados con reseñas y valoraciones
- */
-
 export interface Review {
   id: string;
   rating: number;

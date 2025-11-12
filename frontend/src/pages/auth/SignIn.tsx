@@ -16,8 +16,16 @@ const SignIn = () => {
     setIsLoading(true);
 
     try {
-      await signIn(email, password);
-      navigate("/user/dashboard");
+      const user = await signIn(email, password);
+      
+      // Redirigir según el rol del usuario
+      if (user.role === 'Technician') {
+        navigate("/technician/dashboard");
+      } else if (user.role === 'Admin') {
+        navigate("/admin/dashboard"); // TODO: Crear vista de admin
+      } else {
+        navigate("/user/dashboard");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al iniciar sesión");
     } finally {

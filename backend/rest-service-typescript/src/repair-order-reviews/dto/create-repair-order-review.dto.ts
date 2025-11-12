@@ -5,7 +5,6 @@ export class CreateRepairOrderReviewDto {
   @IsNotEmpty()
   repairOrderId: string;
 
-
   @IsNotEmpty()
   @IsInt()
   @Min(1)

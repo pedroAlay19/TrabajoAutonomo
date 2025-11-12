@@ -117,6 +117,17 @@ export class RepairOrderReviewsService {
     });
   }
 
+  async findByRepairOrderId(repairOrderId: string) {
+    const reviewFound = await this.repairOrderReviewRepository.findOne({
+      where: { repairOrder: { id: repairOrderId }, visible: true },
+    });
+    if (!reviewFound)
+      throw new NotFoundException(
+        `Review for repair order id ${repairOrderId} not found`,
+      );
+    return reviewFound;
+  }
+
   async findOne(id: string, user: JwtPayload) {
     if (user.role === UserRole.ADMIN) {
       const reviewFound = await this.repairOrderReviewRepository.findOne({

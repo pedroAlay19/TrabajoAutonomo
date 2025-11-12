@@ -39,9 +39,12 @@ export default function Notifications() {
           type: 'status',
           title: `Orden #${order.id} - Actualización de Estado`,
           message: `Tu orden está en estado: ${
-            order.status === 'OPEN' ? 'Solicitado' :
-            order.status === 'IN_PROGRESS' ? 'En Reparación' :
-            order.status === 'RESOLVED' ? 'Listo para Entrega' : 'Entregado'
+            order.status === 'IN_REVIEW' ? 'En Revisión' :
+            order.status === 'WAITING_APPROVAL' ? 'Esperando Aprobación' :
+            order.status === 'IN_REPAIR' ? 'En Reparación' :
+            order.status === 'WAITING_PARTS' ? 'Esperando Repuestos' :
+            order.status === 'READY' ? 'Listo para Entrega' :
+            order.status === 'DELIVERED' ? 'Entregado' : 'Rechazado'
           }`,
           icon: '🛠️',
           timestamp: order.updatedAt,
@@ -64,7 +67,7 @@ export default function Notifications() {
         }
 
         // Notificación de costo
-        if (order.estimatedCost > 0) {
+        if (order.estimatedCost && order.estimatedCost > 0) {
           items.push({
             id: `cost-${order.id}`,
             type: 'message',
@@ -126,7 +129,7 @@ export default function Notifications() {
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
-              className="bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-900 transition-colors"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
             >
               Marcar todo como leído
             </button>
@@ -142,7 +145,7 @@ export default function Notifications() {
               onClick={() => setFilter('all')}
               className={`px-6 py-3 rounded-lg font-medium transition-all ${
                 filter === 'all'
-                  ? 'bg-black text-white shadow-lg'
+                  ? 'bg-blue-600 text-white shadow-md'
                   : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'
               }`}
             >
@@ -152,7 +155,7 @@ export default function Notifications() {
               onClick={() => setFilter('status')}
               className={`px-6 py-3 rounded-lg font-medium transition-all ${
                 filter === 'status'
-                  ? 'bg-black text-white shadow-lg'
+                  ? 'bg-blue-600 text-white shadow-md'
                   : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'
               }`}
             >
@@ -162,7 +165,7 @@ export default function Notifications() {
               onClick={() => setFilter('messages')}
               className={`px-6 py-3 rounded-lg font-medium transition-all ${
                 filter === 'messages'
-                  ? 'bg-black text-white shadow-lg'
+                  ? 'bg-blue-600 text-white shadow-md'
                   : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'
               }`}
             >
@@ -172,7 +175,7 @@ export default function Notifications() {
               onClick={() => setFilter('warranty')}
               className={`px-6 py-3 rounded-lg font-medium transition-all ${
                 filter === 'warranty'
-                  ? 'bg-black text-white shadow-lg'
+                  ? 'bg-blue-600 text-white shadow-md'
                   : 'bg-white border border-gray-300 text-gray-700 hover:border-gray-400'
               }`}
             >

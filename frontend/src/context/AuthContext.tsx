@@ -27,12 +27,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   // Login
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<User> => {
     const response = await login(email, password);
     localStorage.setItem('access_token', response.access_token);
     
     const userData = await getProfile(response.access_token);
     setUser(userData);
+    return userData;
   };
 
   // Registro

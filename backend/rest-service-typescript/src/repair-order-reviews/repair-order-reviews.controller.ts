@@ -34,6 +34,12 @@ export class RepairOrderReviewsController {
     return this.repairOrderReviewsService.findOne(id, user);
   }
 
+  @Get(':repairOrderId')
+  @Auth(UserRole.USER, UserRole.TECHNICIAN)
+  findByRepairOrderId(@Param('repairOrderId') repairOrderId: string) {
+    return this.repairOrderReviewsService.findByRepairOrderId(repairOrderId);
+  }
+
   @Patch(':id')
   @Auth(UserRole.ADMIN, UserRole.USER )
   update(@Param('id') id: string, @Body() updateRepairOrderReviewDto: UpdateRepairOrderReviewDto, @ActiveUser() user: JwtPayload) {

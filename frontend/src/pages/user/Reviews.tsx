@@ -25,9 +25,9 @@ export default function Reviews() {
     try {
       const orders = await getRepairOrders();
       
-      // Filtrar órdenes completadas o resueltas
+      // Filtrar órdenes completadas o entregadas
       const completedOrders = orders.filter(
-        (order: RepairOrder) => order.status === 'CLOSED' || order.status === 'RESOLVED'
+        (order: RepairOrder) => order.status === 'DELIVERED'
       );
 
       const reviewData: Review[] = completedOrders.map((order: RepairOrder) => ({
@@ -74,7 +74,7 @@ export default function Reviews() {
         <div className="max-w-5xl mx-auto">
           {/* Average Rating Card */}
           {reviews.filter(r => r.hasReview).length > 0 && (
-            <div className="bg-linear-to-br from-black to-gray-800 rounded-2xl p-8 mb-8 text-white">
+            <div className="bg-linear-to-r from-blue-600 to-blue-700 rounded-2xl p-8 mb-8 text-white">
               <div className="flex items-center gap-8">
                 <div className="text-center">
                   <div className="text-6xl font-bold mb-2">{averageRating.toFixed(1)}</div>
@@ -124,7 +124,7 @@ export default function Reviews() {
               </p>
               <Link
                 to="/user/repair-orders/new"
-                className="inline-flex items-center gap-2 bg-black text-white px-8 py-4 rounded-lg font-medium hover:bg-gray-900 transition-colors"
+                className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
               >
                 Solicitar Reparación
               </Link>
@@ -222,7 +222,7 @@ export default function Reviews() {
                           </div>
                           <Link
                             to={`/user/repair-orders/${review.orderId}`}
-                            className="bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-900 transition-colors whitespace-nowrap"
+                            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors whitespace-nowrap"
                           >
                             Dejar Reseña
                           </Link>

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getEquipments, createRepairOrder } from "../../api/api";
 import type { Equipment } from "../../types/equipment.types";
 import { uploadImage } from "../../api/supabase";
 
 export default function NewRepairOrder() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [equipments, setEquipments] = useState<Equipment[]>([]);
@@ -20,12 +21,19 @@ export default function NewRepairOrder() {
       try {
         const data = await getEquipments();
         setEquipments(data);
+        
+        // Si viene un equipmentId desde el state (desde MyEquipments)
+        const preselectedId = location.state?.equipmentId;
+        if (preselectedId) {
+          setSelectedEquipmentId(preselectedId);
+          setStep(2); // Salta directamente al paso 2
+        }
       } catch (error) {
         console.error("Error al cargar equipos:", error);
       }
     };
     loadEquipments();
-  }, []);
+  }, [location.state]);
 
   const handleSubmit = async () => {
     if (!selectedEquipmentId || !problemDescription.trim()) return;
