@@ -10,6 +10,8 @@ import {
   FireIcon,
   SparklesIcon,
   Bars3Icon,
+  DocumentTextIcon,
+  BellAlertIcon,
 } from "@heroicons/react/24/outline";
 import type {
   SparePartType as SparePart,
@@ -18,6 +20,8 @@ import type {
 } from "../../types";
 import { SparePartModal } from "../../components/admin/SparePartModal";
 import { getAllSpareParts } from "../../api";
+import { generateSparePartsReport, generateLowStockReport } from "../../api/reports";
+import { downloadPdfFromBase64 } from "../../utils/pdfDownload";
 
 export default function SparePartsManagement() {
   const [spareParts, setSpareParts] = useState<SparePart[]>([]);
@@ -30,6 +34,8 @@ export default function SparePartsManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStock, setFilterStock] = useState<"all" | "low" | "out">("all");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [generatingInventoryReport, setGeneratingInventoryReport] = useState(false);
+  const [generatingLowStockReport, setGeneratingLowStockReport] = useState(false);
 
   useEffect(() => {
     loadSpareParts();
@@ -92,6 +98,42 @@ export default function SparePartsManagement() {
     }
   };
 
+  const handleGenerateInventoryReport = async () => {
+    try {
+      console.log('Generando reporte de inventario completo...');
+      setGeneratingInventoryReport(true);
+
+      const base64Pdf = await generateSparePartsReport();
+      downloadPdfFromBase64(base64Pdf, 'reporte-inventario-repuestos.pdf');
+      console.log('Reporte de inventario generado exitosamente');
+
+    } catch (error: any) {
+      console.error("Error al generar reporte de inventario:", error);
+      const errorMessage = error?.message || "Error desconocido al generar el reporte";
+      alert(`Error al generar el reporte:\n${errorMessage}`);
+    } finally {
+      setGeneratingInventoryReport(false);
+    }
+  };
+
+  const handleGenerateLowStockReport = async () => {
+    try {
+      console.log('Generando reporte de stock bajo...');
+      setGeneratingLowStockReport(true);
+
+      const base64Pdf = await generateLowStockReport(5);
+      downloadPdfFromBase64(base64Pdf, 'reporte-stock-bajo.pdf');
+      console.log('Reporte de stock bajo generado exitosamente');
+
+    } catch (error: any) {
+      console.error("Error al generar reporte de stock bajo:", error);
+      const errorMessage = error?.message || "Error desconocido al generar el reporte";
+      alert(`Error al generar el reporte:\n${errorMessage}`);
+    } finally {
+      setGeneratingLowStockReport(false);
+    }
+  };
+
   // KPIs calculations
   const lowStockItems = spareParts.filter((p) => p.stock > 0 && p.stock < 5);
   const outOfStockItems = spareParts.filter((p) => p.stock === 0);
@@ -150,6 +192,42 @@ export default function SparePartsManagement() {
           >
             <Bars3Icon className="w-5 h-5" />
             {sidebarCollapsed ? 'Mostrar' : 'Ocultar'} Menú
+          </button>
+          <button
+            onClick={handleGenerateLowStockReport}
+            disabled={generatingLowStockReport}
+            className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Reporte de stock bajo (< 5 unidades)"
+          >
+            {generatingLowStockReport ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                Generando...
+              </>
+            ) : (
+              <>
+                <BellAlertIcon className="w-5 h-5" />
+                Stock Bajo
+              </>
+            )}
+          </button>
+          <button
+            onClick={handleGenerateInventoryReport}
+            disabled={generatingInventoryReport}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Reporte completo de inventario"
+          >
+            {generatingInventoryReport ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                Generando...
+              </>
+            ) : (
+              <>
+                <DocumentTextIcon className="w-5 h-5" />
+                Inventario
+              </>
+            )}
           </button>
           <button
             onClick={handleOpenCreateModal}

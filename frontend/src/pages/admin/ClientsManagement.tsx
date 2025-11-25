@@ -5,15 +5,19 @@ import {
   TrashIcon,
   UserIcon,
   Bars3Icon,
+  DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import { getAllClients } from "../../api";
 import type { User } from "../../types";
+import { generateUsersReport } from "../../api/reports";
+import { downloadPdfFromBase64 } from "../../utils/pdfDownload";
 
 export default function ClientsManagement() {
   const [clients, setClients] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [generatingReport, setGeneratingReport] = useState(false);
 
   useEffect(() => {
     loadClients();
@@ -43,6 +47,24 @@ export default function ClientsManagement() {
     }
   };
 
+  const handleGenerateUsersReport = async () => {
+    try {
+      console.log('Generando reporte de todos los usuarios...');
+      setGeneratingReport(true);
+
+      const base64Pdf = await generateUsersReport();
+      downloadPdfFromBase64(base64Pdf, 'reporte-usuarios-completo.pdf');
+      console.log('Reporte de usuarios generado exitosamente');
+
+    } catch (error: any) {
+      console.error("Error al generar reporte de usuarios:", error);
+      const errorMessage = error?.message || "Error desconocido al generar el reporte";
+      alert(`Error al generar el reporte:\n${errorMessage}`);
+    } finally {
+      setGeneratingReport(false);
+    }
+  };
+
   const filteredClients = clients.filter(
     (client) =>
       client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -57,26 +79,46 @@ export default function ClientsManagement() {
           <h1 className="text-3xl font-bold text-white">Clientes</h1>
           <p className="text-gray-400 mt-1">Gestión de clientes del sistema</p>
         </div>
-        <button
-          onClick={() => {
-            setSidebarCollapsed(!sidebarCollapsed);
-            const sidebar = document.querySelector('.lg\\:fixed.lg\\:inset-y-0') as HTMLElement;
-            const mainContent = document.querySelector('.lg\\:pl-64') as HTMLElement;
-            if (sidebar && mainContent) {
-              if (!sidebarCollapsed) {
-                sidebar.style.display = 'none';
-                mainContent.style.paddingLeft = '0';
-              } else {
-                sidebar.style.display = 'flex';
-                mainContent.style.paddingLeft = '16rem';
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleGenerateUsersReport}
+            disabled={generatingReport}
+            className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Reporte de todos los usuarios del sistema"
+          >
+            {generatingReport ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                Generando...
+              </>
+            ) : (
+              <>
+                <DocumentTextIcon className="w-5 h-5" />
+                Reporte de Usuarios
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => {
+              setSidebarCollapsed(!sidebarCollapsed);
+              const sidebar = document.querySelector('.lg\\:fixed.lg\\:inset-y-0') as HTMLElement;
+              const mainContent = document.querySelector('.lg\\:pl-64') as HTMLElement;
+              if (sidebar && mainContent) {
+                if (!sidebarCollapsed) {
+                  sidebar.style.display = 'none';
+                  mainContent.style.paddingLeft = '0';
+                } else {
+                  sidebar.style.display = 'flex';
+                  mainContent.style.paddingLeft = '16rem';
+                }
               }
-            }
-          }}
-          className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors"
-        >
-          <Bars3Icon className="w-5 h-5" />
-          {sidebarCollapsed ? 'Mostrar' : 'Ocultar'} Menú
-        </button>
+            }}
+            className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors"
+          >
+            <Bars3Icon className="w-5 h-5" />
+            {sidebarCollapsed ? 'Mostrar' : 'Ocultar'} Menú
+          </button>
+        </div>
       </div>
 
       {/* Search Bar */}

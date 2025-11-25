@@ -3,10 +3,14 @@ import {
   MagnifyingGlassIcon,
   FunnelIcon,
   Bars3Icon,
+  DocumentArrowDownIcon,
+  ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
 import { getRepairOrders } from "../../api";
 import { OrderRepairStatus, type RepairOrder } from "../../types";
 import { getOrderStatusText } from "../../utils/statusUtils";
+import { generateRepairOrderReport, generateRepairOrdersByStatusReport } from "../../api/reports";
+import { downloadPdfFromBase64 } from "../../utils/pdfDownload";
 
 export default function OrdersManagement() {
   const [orders, setOrders] = useState<RepairOrder[]>([]);
@@ -14,6 +18,8 @@ export default function OrdersManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<OrderRepairStatus | "all">("all");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [generatingReportId, setGeneratingReportId] = useState<string | null>(null);
+  const [generatingStatusReport, setGeneratingStatusReport] = useState<string | null>(null);
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -41,6 +47,44 @@ export default function OrdersManagement() {
       [OrderRepairStatus.DELIVERED]: "bg-green-600/10 text-green-600",
     };
     return colors[status] || "bg-gray-500/10 text-gray-500";
+  };
+
+  const handleGenerateReport = async (orderId: string) => {
+    try {
+      console.log('Generando reporte para orden:', orderId);
+      setGeneratingReportId(orderId);
+
+      const base64Pdf = await generateRepairOrderReport(orderId);
+      const shortId = orderId.slice(0, 8);
+      downloadPdfFromBase64(base64Pdf, `reporte-orden-${shortId}.pdf`);
+      console.log('Reporte generado exitosamente');
+
+    } catch (error: any) {
+      console.error("Error al generar reporte:", error);
+      const errorMessage = error?.message || "Error desconocido al generar el reporte";
+      alert(`Error al generar el reporte:\n${errorMessage}`);
+    } finally {
+      setGeneratingReportId(null);
+    }
+  };
+
+  const handleGenerateStatusReport = async (status: OrderRepairStatus) => {
+    try {
+      console.log('Generando reporte para estado:', status);
+      setGeneratingStatusReport(status);
+
+      const base64Pdf = await generateRepairOrdersByStatusReport(status);
+      const statusName = getOrderStatusText(status).toLowerCase().replace(/\s+/g, '-');
+      downloadPdfFromBase64(base64Pdf, `reporte-ordenes-${statusName}.pdf`);
+      console.log('Reporte por estado generado exitosamente');
+
+    } catch (error: any) {
+      console.error("Error al generar reporte por estado:", error);
+      const errorMessage = error?.message || "Error desconocido al generar el reporte";
+      alert(`Error al generar el reporte:\n${errorMessage}`);
+    } finally {
+      setGeneratingStatusReport(null);
+    }
   };
 
   const filteredOrders = orders.filter((order) => {
@@ -96,47 +140,131 @@ export default function OrdersManagement() {
           <p className="text-gray-300 text-xs font-medium">Total</p>
           <p className="text-2xl font-bold text-white mt-1">{orders.length}</p>
         </div>
-        <div className="bg-linear-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-lg p-4">
+        <div className="bg-linear-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-lg p-4 relative group">
           <p className="text-gray-300 text-xs font-medium">🔍 En Revisión</p>
           <p className="text-2xl font-bold text-purple-400 mt-1">
             {orders.filter((o) => o.status === OrderRepairStatus.IN_REVIEW).length}
           </p>
+          <button
+            onClick={() => handleGenerateStatusReport(OrderRepairStatus.IN_REVIEW)}
+            disabled={generatingStatusReport === OrderRepairStatus.IN_REVIEW}
+            className="absolute top-2 right-2 p-1.5 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 rounded transition-colors disabled:opacity-50"
+            title="Descargar reporte"
+          >
+            {generatingStatusReport === OrderRepairStatus.IN_REVIEW ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-400"></div>
+            ) : (
+              <ArrowDownTrayIcon className="w-4 h-4" />
+            )}
+          </button>
         </div>
-        <div className="bg-linear-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg p-4">
+        <div className="bg-linear-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg p-4 relative group">
           <p className="text-gray-300 text-xs font-medium">⏳ Esperando</p>
           <p className="text-2xl font-bold text-yellow-400 mt-1">
             {orders.filter((o) => o.status === OrderRepairStatus.WAITING_APPROVAL).length}
           </p>
+          <button
+            onClick={() => handleGenerateStatusReport(OrderRepairStatus.WAITING_APPROVAL)}
+            disabled={generatingStatusReport === OrderRepairStatus.WAITING_APPROVAL}
+            className="absolute top-2 right-2 p-1.5 text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/20 rounded transition-colors disabled:opacity-50"
+            title="Descargar reporte"
+          >
+            {generatingStatusReport === OrderRepairStatus.WAITING_APPROVAL ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-400"></div>
+            ) : (
+              <ArrowDownTrayIcon className="w-4 h-4" />
+            )}
+          </button>
         </div>
-        <div className="bg-linear-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-500/30 rounded-lg p-4">
+        <div className="bg-linear-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-500/30 rounded-lg p-4 relative group">
           <p className="text-gray-300 text-xs font-medium">🔧 En Reparación</p>
           <p className="text-2xl font-bold text-indigo-400 mt-1">
             {orders.filter((o) => o.status === OrderRepairStatus.IN_REPAIR).length}
           </p>
+          <button
+            onClick={() => handleGenerateStatusReport(OrderRepairStatus.IN_REPAIR)}
+            disabled={generatingStatusReport === OrderRepairStatus.IN_REPAIR}
+            className="absolute top-2 right-2 p-1.5 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/20 rounded transition-colors disabled:opacity-50"
+            title="Descargar reporte"
+          >
+            {generatingStatusReport === OrderRepairStatus.IN_REPAIR ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-400"></div>
+            ) : (
+              <ArrowDownTrayIcon className="w-4 h-4" />
+            )}
+          </button>
         </div>
-        <div className="bg-linear-to-br from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-lg p-4">
+        <div className="bg-linear-to-br from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-lg p-4 relative group">
           <p className="text-gray-300 text-xs font-medium">📦 Esperando Piezas</p>
           <p className="text-2xl font-bold text-orange-400 mt-1">
             {orders.filter((o) => o.status === OrderRepairStatus.WAITING_PARTS).length}
           </p>
+          <button
+            onClick={() => handleGenerateStatusReport(OrderRepairStatus.WAITING_PARTS)}
+            disabled={generatingStatusReport === OrderRepairStatus.WAITING_PARTS}
+            className="absolute top-2 right-2 p-1.5 text-orange-400 hover:text-orange-300 hover:bg-orange-500/20 rounded transition-colors disabled:opacity-50"
+            title="Descargar reporte"
+          >
+            {generatingStatusReport === OrderRepairStatus.WAITING_PARTS ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-400"></div>
+            ) : (
+              <ArrowDownTrayIcon className="w-4 h-4" />
+            )}
+          </button>
         </div>
-        <div className="bg-linear-to-br from-red-500/20 to-pink-500/20 border border-red-500/30 rounded-lg p-4">
+        <div className="bg-linear-to-br from-red-500/20 to-pink-500/20 border border-red-500/30 rounded-lg p-4 relative group">
           <p className="text-gray-300 text-xs font-medium">❌ Rechazadas</p>
           <p className="text-2xl font-bold text-red-400 mt-1">
             {orders.filter((o) => o.status === OrderRepairStatus.REJECTED).length}
           </p>
+          <button
+            onClick={() => handleGenerateStatusReport(OrderRepairStatus.REJECTED)}
+            disabled={generatingStatusReport === OrderRepairStatus.REJECTED}
+            className="absolute top-2 right-2 p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded transition-colors disabled:opacity-50"
+            title="Descargar reporte"
+          >
+            {generatingStatusReport === OrderRepairStatus.REJECTED ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-400"></div>
+            ) : (
+              <ArrowDownTrayIcon className="w-4 h-4" />
+            )}
+          </button>
         </div>
-        <div className="bg-linear-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-lg p-4">
+        <div className="bg-linear-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-lg p-4 relative group">
           <p className="text-gray-300 text-xs font-medium">✅ Listas</p>
           <p className="text-2xl font-bold text-green-400 mt-1">
             {orders.filter((o) => o.status === OrderRepairStatus.READY).length}
           </p>
+          <button
+            onClick={() => handleGenerateStatusReport(OrderRepairStatus.READY)}
+            disabled={generatingStatusReport === OrderRepairStatus.READY}
+            className="absolute top-2 right-2 p-1.5 text-green-400 hover:text-green-300 hover:bg-green-500/20 rounded transition-colors disabled:opacity-50"
+            title="Descargar reporte"
+          >
+            {generatingStatusReport === OrderRepairStatus.READY ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-400"></div>
+            ) : (
+              <ArrowDownTrayIcon className="w-4 h-4" />
+            )}
+          </button>
         </div>
-        <div className="bg-linear-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 rounded-lg p-4">
+        <div className="bg-linear-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 rounded-lg p-4 relative group">
           <p className="text-gray-300 text-xs font-medium">🎉 Entregadas</p>
           <p className="text-2xl font-bold text-emerald-400 mt-1">
             {orders.filter((o) => o.status === OrderRepairStatus.DELIVERED).length}
           </p>
+          <button
+            onClick={() => handleGenerateStatusReport(OrderRepairStatus.DELIVERED)}
+            disabled={generatingStatusReport === OrderRepairStatus.DELIVERED}
+            className="absolute top-2 right-2 p-1.5 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/20 rounded transition-colors disabled:opacity-50"
+            title="Descargar reporte"
+          >
+            {generatingStatusReport === OrderRepairStatus.DELIVERED ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-400"></div>
+            ) : (
+              <ArrowDownTrayIcon className="w-4 h-4" />
+            )}
+          </button>
         </div>
       </div>
 
@@ -201,12 +329,15 @@ export default function OrdersManagement() {
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Costo
                 </th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
               {filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
                     No se encontraron órdenes
                   </td>
                 </tr>
@@ -252,6 +383,22 @@ export default function OrdersManagement() {
                       <p className="text-white text-sm font-semibold">
                         ${order.finalCost ? order.finalCost : "0.00"}
                       </p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex justify-center">
+                        <button
+                          onClick={() => handleGenerateReport(order.id)}
+                          disabled={generatingReportId === order.id}
+                          className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Generar reporte de orden"
+                        >
+                          {generatingReportId === order.id ? (
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-400"></div>
+                          ) : (
+                            <DocumentArrowDownIcon className="w-5 h-5" />
+                          )}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

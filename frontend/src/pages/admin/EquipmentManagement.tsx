@@ -4,16 +4,20 @@ import {
   TrashIcon,
   ComputerDesktopIcon,
   Bars3Icon,
+  DocumentArrowDownIcon,
 } from "@heroicons/react/24/outline";
 import { getEquipment, getEquipments } from "../../api";
 import type { Equipment } from "../../types";
 import { equipmentTypes } from "../../data/equipmentTypes";
+import { generateEquipmentReport } from "../../api/reports";
+import { downloadPdfFromBase64 } from "../../utils/pdfDownload";
 
 export default function EquipmentManagement() {
   const [equipments, setEquipments] = useState<Equipment[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [generatingReportId, setGeneratingReportId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadEquipments = async () => {
@@ -39,6 +43,33 @@ export default function EquipmentManagement() {
     } catch (error) {
       console.error("Error deleting equipment:", error);
       alert("Error al eliminar el equipo");
+    }
+  };
+
+  const handleGenerateReport = async (equipmentId: string, equipmentName: string) => {
+    try {
+      console.log('Iniciando generación de reporte para equipo:', equipmentId);
+      setGeneratingReportId(equipmentId);
+
+      // Call GraphQL to generate PDF
+      console.log('Llamando a generateEquipmentReport...');
+      const base64Pdf = await generateEquipmentReport(equipmentId);
+      console.log('Reporte generado exitosamente, descargando PDF...');
+
+      // Download PDF
+      const sanitizedName = equipmentName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+      downloadPdfFromBase64(base64Pdf, `reporte-equipo-${sanitizedName}.pdf`);
+      console.log('PDF descargado exitosamente');
+
+    } catch (error: any) {
+      console.error("Error completo al generar reporte:", error);
+      console.error("Mensaje de error:", error?.message);
+      console.error("Stack trace:", error?.stack);
+      
+      const errorMessage = error?.message || "Error desconocido al generar el reporte";
+      alert(`Error al generar el reporte:\n${errorMessage}`);
+    } finally {
+      setGeneratingReportId(null);
     }
   };
 
@@ -190,13 +221,27 @@ export default function EquipmentManagement() {
                         {equipment.user.name || "-"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <button
-                          onClick={() => handleDelete(equipment.id)}
-                          className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg transition-all"
-                          title="Eliminar equipo"
-                        >
-                          <TrashIcon className="w-5 h-5" />
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleGenerateReport(equipment.id, equipment.name)}
+                            disabled={generatingReportId === equipment.id}
+                            className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-900/20 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Generar reporte PDF"
+                          >
+                            {generatingReportId === equipment.id ? (
+                              <div className="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full" />
+                            ) : (
+                              <DocumentArrowDownIcon className="w-5 h-5" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleDelete(equipment.id)}
+                            className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg transition-all"
+                            title="Eliminar equipo"
+                          >
+                            <TrashIcon className="w-5 h-5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

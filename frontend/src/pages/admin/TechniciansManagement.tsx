@@ -7,6 +7,7 @@ import {
   TrashIcon,
   ShieldCheckIcon,
   Bars3Icon,
+  ChartBarIcon,
 } from "@heroicons/react/24/outline";
 import type {
   TechnicianUser,
@@ -15,6 +16,8 @@ import type {
 } from "../../types";
 import { TechnicianModal } from "../../components/admin/TechnicianModal";
 import { createTechnician, deleteTechnician, getAllTechnicians, updateTechnician } from "../../api";
+import { generateTechniciansPerformanceReport } from "../../api/reports";
+import { downloadPdfFromBase64 } from "../../utils/pdfDownload";
 
 export default function TechniciansManagement() {
   const [technicians, setTechnicians] = useState<TechnicianUser[]>([]);
@@ -26,6 +29,7 @@ export default function TechniciansManagement() {
   >();
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [generatingReport, setGeneratingReport] = useState(false);
 
   useEffect(() => {
     const loadTechnicians = async () => {
@@ -119,6 +123,24 @@ export default function TechniciansManagement() {
     }
   };
 
+  const handleGeneratePerformanceReport = async () => {
+    try {
+      console.log('Generando reporte de rendimiento de técnicos...');
+      setGeneratingReport(true);
+
+      const base64Pdf = await generateTechniciansPerformanceReport();
+      downloadPdfFromBase64(base64Pdf, 'reporte-rendimiento-tecnicos.pdf');
+      console.log('Reporte generado exitosamente');
+
+    } catch (error: any) {
+      console.error("Error al generar reporte:", error);
+      const errorMessage = error?.message || "Error desconocido al generar el reporte";
+      alert(`Error al generar el reporte:\n${errorMessage}`);
+    } finally {
+      setGeneratingReport(false);
+    }
+  };
+
   const filteredTechnicians = technicians.filter(
     (tech) =>
       tech.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -154,6 +176,23 @@ export default function TechniciansManagement() {
           >
             <Bars3Icon className="w-5 h-5" />
             {sidebarCollapsed ? 'Mostrar' : 'Ocultar'} Menú
+          </button>
+          <button
+            onClick={handleGeneratePerformanceReport}
+            disabled={generatingReport}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {generatingReport ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                Generando...
+              </>
+            ) : (
+              <>
+                <ChartBarIcon className="w-5 h-5" />
+                Reporte de Rendimiento
+              </>
+            )}
           </button>
           <button
             onClick={handleOpenCreateModal}
