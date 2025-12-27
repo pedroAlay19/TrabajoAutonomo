@@ -5,13 +5,11 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { LocalTokenValidationService } from '../services/local-token-validation.service';
+import { TokenService } from '../services/token.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(
-    private localTokenValidation: LocalTokenValidationService,
-  ) {}
+  constructor(private tokenService: TokenService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
@@ -22,13 +20,24 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
-      const payload = await this.localTokenValidation.validateTokenLocally(token);
-      
+      // PASO 1: Verificar firma y expiración (LOCAL - sin BD)
+      const payload = await this.tokenService.verifyAccessToken(token);
+
+      // PASO 2: Verificar tipo de token
+      if (payload.type !== 'access') {
+        throw new UnauthorizedException('Tipo de token inválido');
+      }
+
+      // PASO 3: Verificar blacklist (consulta BD - pero con cache)
+      const isRevoked = await this.tokenService.isTokenRevoked(payload.jti);
+      if (isRevoked) {
+        throw new UnauthorizedException('Token revocado');
+      }
+
       // Adjuntar payload al request
       request['user'] = payload;
       return true;
     } catch (error) {
-      console.log(error)
       throw new UnauthorizedException('Token inválido o expirado');
     }
   }
