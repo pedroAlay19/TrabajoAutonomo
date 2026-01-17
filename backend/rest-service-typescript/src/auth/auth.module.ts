@@ -3,6 +3,7 @@ import { LocalTokenValidationService } from './services/local-token-validation.s
 import { AuthGuard } from './guard/auth.guard';
 import { RolesGuard } from './guard/roles.guard';
 import { CacheService } from './services/cache.service';
+import { LocalCacheService } from './services/local-cache.service';
 
 @Global()
 @Module({
@@ -10,13 +11,14 @@ import { CacheService } from './services/cache.service';
   providers: [
     LocalTokenValidationService,
     AuthGuard,
-    RolesGuard, // Necesario para @Auth decorator
+    RolesGuard, 
     CacheService,
+    LocalCacheService
   ],
   exports: [
     LocalTokenValidationService,
     AuthGuard,
-    RolesGuard, // Exportar para uso en controladores con @Auth
+    RolesGuard,
   ],
 })
 export class AuthModule {}
