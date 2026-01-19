@@ -128,6 +128,17 @@ export class WebhooksService {
       case 'order.updated':
         return await this.handleOrderUpdated(data);
 
+      // Eventos de pago del cine
+      case 'payment.completed':
+      case 'payment.pending':
+      case 'payment.failed':
+        this.logger.log(`Evento de pago recibido: ${event}`);
+        // Los eventos de pago se procesan en el PaymentService
+        return { 
+          status: 'received', 
+          message: 'Payment event will be processed by payment service'
+        };
+
       default:
         this.logger.warn(`Evento no manejado: ${event}`);
         return { status: 'received', message: 'Event type not handled' };

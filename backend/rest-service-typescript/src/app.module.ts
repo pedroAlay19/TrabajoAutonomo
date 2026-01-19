@@ -7,13 +7,14 @@ import { EquipmentsModule } from './equipments/equipments.module';
 import { RepairOrderReviewsModule } from './repair-order-reviews/repair-order-reviews.module';
 import { AuthModule } from './auth/auth.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
+import { PaymentModule } from './webhooks/payment/payment.module';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true, // Hace las variables disponibles en toda la app
+      isGlobal: true,
     }),
      // JWT Module con el mismo secret
     JwtModule.register({
@@ -37,6 +38,7 @@ import { JwtModule } from '@nestjs/jwt';
     RepairOrderReviewsModule,
     AuthModule,
     WebhooksModule,
+    PaymentModule,
   ],
   controllers: [],
   providers: [],
